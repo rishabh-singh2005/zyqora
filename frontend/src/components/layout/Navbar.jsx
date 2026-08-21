@@ -7,6 +7,7 @@ import { logoutUser } from "../../api/auth.api";
 import logo from "../../assets/logo.png";
 import { setCartCount } from "../../features/cart/cartSlice";
 import { getCart } from "../../api/cart.api";
+import { getUnreadCount } from "../../api/notification.api";
 
 export default function Navbar() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -17,8 +18,22 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const { itemCount } = useSelector((state) => state.cart);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // ==================== CLOSE DROPDOWN ON OUTSIDE CLICK ====================
+
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+
+    let isActive = true;
+    getUnreadCount().then((res) => {
+      if (isActive) setUnreadCount(res.count);
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, [isAuthenticated, location.pathname]);
 
   useEffect(() => {
   if (isAuthenticated) {
@@ -29,7 +44,7 @@ export default function Navbar() {
   } else {
     dispatch(setCartCount(0));
   }
-}, [isAuthenticated]);  
+}, [isAuthenticated, dispatch]);  
 
 
   useEffect(() => {
@@ -108,11 +123,13 @@ export default function Navbar() {
               </Link>
 
               <Link to="/notifications" className="relative text-ink hover:text-primary-600 transition" aria-label="Notifications">
-                <Bell size={22} />
+              <Bell size={22} />
+              {unreadCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-secondary-500 text-white text-[10px] font-semibold rounded-full h-4 w-4 flex items-center justify-center">
-                  0
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
-              </Link>
+              )}
+            </Link>
 
               <Link to="/cart" className="relative text-ink hover:text-primary-600 transition" aria-label="Cart">
               <ShoppingCart size={22} />

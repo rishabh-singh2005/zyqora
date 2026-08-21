@@ -13,6 +13,11 @@ import OAuthSuccess from "./pages/user/OAuthSuccess";
 import Checkout from "./pages/user/Checkout";
 import Orders from "./pages/user/Orders";
 import OrderDetail from "./pages/user/OrderDetail";
+import Wishlist from "./pages/user/Wishlist";
+import Profile from "./pages/user/Profile";
+import Addresses from "./pages/user/Addresses";
+import Notifications from "./pages/user/Notifications";
+import Pricing from "./pages/user/Pricing";
 
 
 function App() {
@@ -33,6 +38,11 @@ function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/orders/:id" element={<OrderDetail />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/addresses" element={<Addresses />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/pricing" element={<Pricing />} />
             </Routes>
           </main>
           <Footer />

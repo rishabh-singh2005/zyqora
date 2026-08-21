@@ -5,6 +5,8 @@ import { Heart } from "lucide-react";
 import Button from "../common/Button";
 import { addToCart, getCart } from "../../api/cart.api";
 import { setCartCount } from "../../features/cart/cartSlice";
+import { addToWishlist } from "../../api/wishlist.api";
+
 
 export default function ProductCard({ product }) {
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -40,6 +42,19 @@ export default function ProductCard({ product }) {
     }
   };
 
+  const handleWishlist = async (e) => {
+  e.preventDefault();
+  if (!isAuthenticated) {
+    navigate("/login");
+    return;
+  }
+  try {
+    await addToWishlist(product.id);
+  } catch (err) {
+    console.error("Wishlist error:", err.response?.data?.message);
+  }
+};
+
   return (
     <div className="group bg-white rounded-xl2 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 overflow-hidden">
       <Link to={`/products/${product.slug}`}>
@@ -49,13 +64,14 @@ export default function ProductCard({ product }) {
             alt={product.name}
             className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
           />
+
           <button
-            onClick={(e) => e.preventDefault()}
-            className="absolute top-3 right-3 bg-white/80 backdrop-blur rounded-full p-2 text-muted hover:text-secondary-500 transition"
-          >
-            <Heart size={16} />
+          onClick={handleWishlist}
+          className="absolute top-3 right-3 bg-white/80 backdrop-blur rounded-full p-2 text-muted hover:text-secondary-500 transition">
+          <Heart size={16} />
           </button>
         </div>
+        
         <div className="p-4 space-y-1">
           <p className="text-xs font-body text-muted uppercase tracking-wide">
             {product.category?.name || "General"}

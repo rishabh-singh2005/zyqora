@@ -8,6 +8,8 @@ import { getCart } from "../../api/cart.api";
 import { getAddresses } from "../../api/address.api";
 import { applyCoupon } from "../../api/coupon.api";
 import { checkout, verifyOrderPayment } from "../../api/order.api";
+import { X } from "lucide-react";
+import { removeCartItem } from "../../api/cart.api";
 
 
 export default function Checkout() {
@@ -60,6 +62,12 @@ export default function Checkout() {
       setCouponError(err.response?.data?.message || "Invalid coupon");
     }
   };
+
+  const handleRemoveItem = async (productId) => {
+  await removeCartItem(productId);
+  const cartRes = await getCart();
+  setCart(cartRes.cart);
+    };
 
   const handlePlaceOrder = async () => {
     if (!selectedAddressId) {
@@ -197,32 +205,39 @@ export default function Checkout() {
           </div>
 
           {/* ==================== ORDER ITEMS ==================== */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl2 shadow-card p-6">
-            <h2 className="font-display font-semibold text-lg text-ink mb-4">
-              Order Items ({items.length})
-            </h2>
-            <div className="space-y-3">
-              {items.map((item) => {
-                const price = item.product.discountPct
-                  ? Math.round(item.product.price - (item.product.price * item.product.discountPct) / 100)
-                  : item.product.price;
-                return (
-                  <div key={item.id} className="flex items-center gap-3 text-sm font-body">
-                    <img
-                      src={item.product.images?.[0]?.url || "https://placehold.co/60x60?text=No+Image"}
-                      alt={item.product.name}
-                      className="w-12 h-12 object-contain bg-primary-50/50 rounded-lg p-1"
-                    />
-                    <div className="flex-1">
-                      <p className="text-ink font-medium">{item.product.name}</p>
-                      <p className="text-muted">Qty: {item.quantity}</p>
-                    </div>
-                    <p className="text-ink font-semibold">₹{price * item.quantity}</p>
-                  </div>
-                );
-              })}
-            </div>
+<div className="bg-white/80 backdrop-blur-sm rounded-xl2 shadow-card p-6">
+  <h2 className="font-display font-semibold text-lg text-ink mb-4">
+    Order Items ({items.length})
+  </h2>
+  <div className="space-y-3">
+    {items.map((item) => {
+      const price = item.product.discountPct
+        ? Math.round(item.product.price - (item.product.price * item.product.discountPct) / 100)
+        : item.product.price;
+      return (
+        <div key={item.id} className="flex items-center gap-3 text-sm font-body">
+          <img
+            src={item.product.images?.[0]?.url || "https://placehold.co/60x60?text=No+Image"}
+            alt={item.product.name}
+            className="w-12 h-12 object-contain bg-primary-50/50 rounded-lg p-1"
+          />
+          <div className="flex-1">
+            <p className="text-ink font-medium">{item.product.name}</p>
+            <p className="text-muted">Qty: {item.quantity}</p>
           </div>
+          <p className="text-ink font-semibold">₹{price * item.quantity}</p>
+          <button
+            onClick={() => handleRemoveItem(item.product.id)}
+            className="text-muted hover:text-secondary-500 transition shrink-0"
+            title="Remove item"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        );
+        })}
+        </div>
+        </div>
         </div>
 
         {/* ==================== SUMMARY ==================== */}

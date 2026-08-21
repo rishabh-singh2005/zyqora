@@ -5,6 +5,7 @@ import Button from "../../components/common/Button";
 import ProductCard from "../../components/product/ProductCard";
 import { fetchProducts, fetchCategories } from "../../api/product.api";
 import heroImage from "../../assets/hero-phone.png";
+import PricingPlans from "../../components/product/PricingPlans";
 
 const TRUST_BADGES = [
   { icon: Truck, label: "Fast Delivery" },
@@ -124,6 +125,9 @@ export default function Home() {
             ))}
           </div>
         )}
+      </section>
+      <section>
+      <PricingPlans />
       </section>
     </div>
   );

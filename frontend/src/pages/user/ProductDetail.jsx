@@ -11,6 +11,8 @@ import { getAddresses } from "../../api/address.api";
 import { useDispatch } from "react-redux";
 import { setCartCount } from "../../features/cart/cartSlice";
 import { getCart } from "../../api/cart.api";
+import { addToWishlist } from "../../api/wishlist.api";
+
 
 function ProductDetail() {
   const { slug } = useParams();
@@ -30,6 +32,20 @@ function ProductDetail() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const location = useLocation();
   const dispatch = useDispatch();
+
+  const handleWishlist = async () => {
+  if (!isAuthenticated) {
+    navigate("/login");
+    return;
+  }
+  try {
+    await addToWishlist(product.id);
+    setMessage("Added to wishlist!");
+    setTimeout(() => setMessage(""), 2000);
+  } catch (err) {
+    setMessage(err.response?.data?.message || "Failed to add to wishlist");
+  }
+};
 
   useEffect(() => {
     fetchProductBySlug(slug)
@@ -268,10 +284,15 @@ function ProductDetail() {
             >
               Buy Now
             </Button>
-            <button className="border border-primary-100 rounded-full p-3 text-muted hover:text-secondary-500 hover:border-secondary-300 transition">
+            
+            <button
+              onClick={handleWishlist}
+              className="border border-primary-100 rounded-full p-3 text-muted hover:text-secondary-500 hover:border-secondary-300 transition"
+            >
               <Heart size={20} />
             </button>
-          </div>
+
+            </div>
 
           {/* ==================== TRUST BADGES ==================== */}
           <div className="grid grid-cols-3 gap-3 pt-4 border-t border-primary-100">

@@ -28,7 +28,6 @@ export default function ProductList() {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
     fetchProducts({ ...filters, limit: 12 })
       .then((res) => {
         setProducts(res.products || []);
