@@ -1,0 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: theme("colors.surface");
+  background-image: theme("backgroundImage.zyqora-mesh");
+  background-attachment: fixed;
+  font-family: theme("fontFamily.body");
+  color: theme("colors.ink");
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: theme("fontFamily.display");
+}
+
+:focus-visible {
+  outline: 2px solid theme("colors.primary.500");
+  outline-offset: 2px;
+}

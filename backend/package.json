@@ -1,0 +1,49 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "npx nodemon src/server.js",
+    "start": "node src/server.js",
+    "migrate": "prisma migrate dev",
+    "generate": "prisma generate",
+    "seed": "node src/prisma/seed.js",
+    "seed:products": "node src/prisma/seedProducts.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^1.41.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
+    "multer-storage-cloudinary": "^4.0.0",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^9.0.5",
+    "passport": "^0.7.0",
+    "passport-facebook": "^3.0.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pdfkit": "^0.19.1",
+    "razorpay": "^2.9.8",
+    "uuid": "^14.0.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prisma": "^7.9.1"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.9.1": true,
+    "core-js@3.50.0": true,
+    "prisma@7.9.1": true
+  }
+}
