@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Provider } from "react-redux";
+import { Provider, useDispatch } from "react-redux";
 import { store } from "./app/store";
+import { authSuccess } from "./features/auth/authSlice";
+import axiosInstance from "./api/axiosInstance";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import Home from "./pages/user/Home";
@@ -18,35 +21,91 @@ import Profile from "./pages/user/Profile";
 import Addresses from "./pages/user/Addresses";
 import Notifications from "./pages/user/Notifications";
 import Pricing from "./pages/user/Pricing";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
+import AdminLayout from "./components/layout/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard";
+import AdminProducts from "./pages/admin/Products";
+import AdminCategories from "./pages/admin/Categories";
+import AdminOrders from "./pages/admin/Orders";
+import AdminCoupons from "./pages/admin/Coupons";
+import AdminUsers from "./pages/admin/Users";
 
+function AppContent() {
+  const dispatch = useDispatch();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // ==================== RESTORE SESSION ON APP LOAD ====================
+  useEffect(() => {
+    axiosInstance
+      .post("/api/auth/refresh")
+      .then((res) => {
+        return axiosInstance
+          .get("/api/users/me", {
+            headers: { Authorization: `Bearer ${res.data.accessToken}` },
+          })
+          .then((userRes) => {
+            dispatch(authSuccess({ user: userRes.data.user, accessToken: res.data.accessToken }));
+          });
+      })
+      .catch(() => {
+        // no valid refresh token cookie — user genuinely not logged in, that's fine
+      })
+      .finally(() => setCheckingAuth(false));
+  }, [dispatch]);
+
+  if (checkingAuth) {
+    return <p className="text-center py-20 text-muted font-body">Loading...</p>;
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/products/:slug" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/oauth-success" element={<OAuthSuccess />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/orders/:id" element={<OrderDetail />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/addresses" element={<Addresses />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+                <AdminLayout>
+                  <Routes>
+                    <Route index element={<Dashboard />} />
+                    <Route path="products" element={<AdminProducts />} />
+                    <Route path="categories" element={<AdminCategories />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="coupons" element={<AdminCoupons />} />
+                    <Route path="users" element={<AdminUsers />} />
+                  </Routes>
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+  );
+}
 
 function App() {
   return (
     <Provider store={store}>
       <BrowserRouter>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/products" element={<ProductList />} />
-              <Route path="/products/:slug" element={<ProductDetail />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/oauth-success" element={<OAuthSuccess />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/orders/:id" element={<OrderDetail />} />
-              <Route path="/wishlist" element={<Wishlist />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/addresses" element={<Addresses />} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/pricing" element={<Pricing />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+        <AppContent />
       </BrowserRouter>
     </Provider>
   );

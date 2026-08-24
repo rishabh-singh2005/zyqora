@@ -1,13 +1,27 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { ShoppingCart, Heart, Bell, Search, ArrowLeft, ChevronDown, Package, LogOut, User as UserIcon } from "lucide-react";
+import {
+  ShoppingCart,
+  Heart,
+  Bell,
+  Search,
+  ArrowLeft,
+  ChevronDown,
+  Package,
+  LogOut,
+  User as UserIcon,
+  Crown,
+  Star,
+} from "lucide-react";
 import { logout } from "../../features/auth/authSlice";
 import { logoutUser } from "../../api/auth.api";
 import logo from "../../assets/logo.png";
 import { setCartCount } from "../../features/cart/cartSlice";
 import { getCart } from "../../api/cart.api";
 import { getUnreadCount } from "../../api/notification.api";
+import { getMyPlan } from "../../api/plan.api";
+import { setActivePlan, clearActivePlan } from "../../features/plans/plansSlice";
 
 export default function Navbar() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -19,9 +33,9 @@ export default function Navbar() {
   const menuRef = useRef(null);
   const { itemCount } = useSelector((state) => state.cart);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { planType, expiresAt } = useSelector((state) => state.plan);
 
-  // ==================== CLOSE DROPDOWN ON OUTSIDE CLICK ====================
-
+  // ==================== UNREAD NOTIFICATIONS ====================
   useEffect(() => {
     if (!isAuthenticated) return undefined;
 
@@ -35,18 +49,34 @@ export default function Navbar() {
     };
   }, [isAuthenticated, location.pathname]);
 
+  // ==================== ACTIVE PLAN ====================
   useEffect(() => {
-  if (isAuthenticated) {
-    getCart().then((res) => {
-      const count = res.cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-      dispatch(setCartCount(count));
-    });
-  } else {
-    dispatch(setCartCount(0));
-  }
-}, [isAuthenticated, dispatch]);  
+    if (isAuthenticated) {
+      getMyPlan().then((res) => {
+        if (res.plan?.planType && res.plan.planType !== "FREE") {
+          dispatch(setActivePlan(res.plan));
+        } else {
+          dispatch(clearActivePlan());
+        }
+      });
+    } else {
+      dispatch(clearActivePlan());
+    }
+  }, [isAuthenticated, location.pathname]);
 
+  // ==================== CART COUNT ====================
+  useEffect(() => {
+    if (isAuthenticated) {
+      getCart().then((res) => {
+        const count = res.cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+        dispatch(setCartCount(count));
+      });
+    } else {
+      dispatch(setCartCount(0));
+    }
+  }, [isAuthenticated, dispatch]);
 
+  // ==================== CLOSE DROPDOWN ON OUTSIDE CLICK ====================
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -123,22 +153,37 @@ export default function Navbar() {
               </Link>
 
               <Link to="/notifications" className="relative text-ink hover:text-primary-600 transition" aria-label="Notifications">
-              <Bell size={22} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-secondary-500 text-white text-[10px] font-semibold rounded-full h-4 w-4 flex items-center justify-center">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </Link>
+                <Bell size={22} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-secondary-500 text-white text-[10px] font-semibold rounded-full h-4 w-4 flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
 
               <Link to="/cart" className="relative text-ink hover:text-primary-600 transition" aria-label="Cart">
-              <ShoppingCart size={22} />
-              {itemCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-secondary-500 text-white text-[10px] font-semibold rounded-full h-4 w-4 flex items-center justify-center">
-                  {itemCount > 9 ? "9+" : itemCount}
-                </span>
+                <ShoppingCart size={22} />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-secondary-500 text-white text-[10px] font-semibold rounded-full h-4 w-4 flex items-center justify-center">
+                    {itemCount > 9 ? "9+" : itemCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* ==================== PLAN BADGE ==================== */}
+              {planType && (
+                <div
+                  title={`${planType} Member — expires ${new Date(expiresAt).toLocaleString("en-IN")}`}
+                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-display font-semibold ${
+                    planType === "GOLD"
+                      ? "bg-gradient-to-r from-accent-500 to-secondary-500 text-white"
+                      : "bg-primary-100 text-primary-600"
+                  }`}
+                >
+                  {planType === "GOLD" ? <Crown size={12} /> : <Star size={12} />}
+                  <span className="hidden sm:inline">{planType}</span>
+                </div>
               )}
-            </Link>
 
               {/* ==================== PROFILE DROPDOWN ==================== */}
               <div className="relative" ref={menuRef}>
