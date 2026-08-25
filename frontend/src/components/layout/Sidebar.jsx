@@ -9,6 +9,8 @@ import {
   Tag,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
+import { Link } from "react-router-dom";
+import { ArrowLeftCircle } from "lucide-react";
 
 const NAV_ITEMS = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
@@ -53,6 +55,16 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      <div className="pt-4 border-t border-primary-100">
+        <Link
+            to="/"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-body text-muted hover:text-primary-600 transition"
+        >
+            <ArrowLeftCircle size={18} />
+            Back to Store
+        </Link>
+        </div>
     </aside>
   );
 }

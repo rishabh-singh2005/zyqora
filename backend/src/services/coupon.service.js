@@ -36,7 +36,18 @@ export const updateCoupon = async (id, data) => {
     throw error;
   }
 
-  return prisma.coupon.update({ where: { id }, data });
+  const { code, discountPct, maxDiscount, minOrderValue, expiresAt } = data;
+
+  return prisma.coupon.update({
+    where: { id },
+    data: {
+      code: code.trim().toUpperCase(),
+      discountPct: Number(discountPct),
+      maxDiscount: maxDiscount ? Number(maxDiscount) : null,
+      minOrderValue: Number(minOrderValue) || 0,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+    },
+  });
 };
 
 // ==================== DELETE COUPON ====================

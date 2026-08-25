@@ -39,3 +39,25 @@ export const dashboard = async (req, res) => {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
+
+import { listAllOrders, updateOrderStatusAdmin } from "../services/admin.service.js";
+
+// ==================== LIST ALL ORDERS ====================
+export const getAllOrdersAdmin = async (req, res) => {
+  try {
+    const result = await listAllOrders(req.query);
+    res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+// ==================== UPDATE ORDER STATUS ====================
+export const changeOrderStatus = async (req, res) => {
+  try {
+    const order = await updateOrderStatusAdmin(req.params.id, req.body.status);
+    res.status(200).json({ success: true, order });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};

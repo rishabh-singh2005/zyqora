@@ -34,43 +34,87 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-14">
+      
       {/* ==================== HERO ==================== */}
-      <section className="grid md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 bg-gradient-to-br from-primary-100 via-secondary-100 to-white rounded-xl2 shadow-soft p-10 flex items-center justify-between overflow-hidden">
-          <div className="max-w-md space-y-4 z-10">
-            <p className="text-sm font-semibold text-secondary-600 uppercase tracking-wide">
-              Featured Collection
-            </p>
-            <h1 className="text-4xl font-display font-extrabold text-ink leading-tight">
-              Trendy Picks & Everyday Essentials
-            </h1>
-            <p className="text-muted font-body">
-              Discover curated styles and trending must-haves, refreshed weekly.
-            </p>
-            <Button variant="primary">Shop Now</Button>
-          </div>
-          <img
-            src={heroImage}
-            alt="Shop Zyqora"
-            className="hidden md:block h-64 object-contain drop-shadow-2xl"
-          />
+<section>
+  <div className="relative min-h-[380px] md:min-h-[420px] overflow-hidden rounded-[28px] bg-gradient-to-br from-primary-100 via-secondary-100 to-white shadow-soft">
+
+    {/* Decorative background elements */}
+    <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-primary-300/20 blur-3xl" />
+    <div className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-secondary-300/20 blur-3xl" />
+
+    {/* Subtle decorative circles */}
+    <div className="absolute top-10 right-[32%] h-20 w-20 rounded-full border border-white/60" />
+    <div className="absolute bottom-10 right-[28%] h-12 w-12 rounded-full border border-primary-300/30" />
+
+    <div className="relative z-10 flex h-full min-h-[380px] md:min-h-[420px] items-center justify-between px-7 py-10 md:px-12 lg:px-16">
+
+      {/* ==================== CONTENT ==================== */}
+      <div className="max-w-xl">
+
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/60 px-4 py-2 shadow-sm backdrop-blur-md">
+          <span className="h-2 w-2 rounded-full bg-secondary-500 animate-pulse" />
+          <span className="text-xs font-semibold uppercase tracking-[0.15em] text-secondary-700">
+            Featured Collection
+          </span>
         </div>
 
-        <div className="bg-gradient-to-br from-accent-300 to-secondary-300 rounded-xl2 shadow-soft p-8 flex flex-col justify-between text-white">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide opacity-90">
-              Trendy Decor
-            </p>
-            <h2 className="text-2xl font-display font-bold mt-2">New Arrivals Collection</h2>
-            <p className="text-sm opacity-90 mt-2">
-              Fresh styles added weekly. Grab yours before they're gone.
-            </p>
-          </div>
-          <Button variant="secondary" className="mt-6 self-start">
-            Shop Now
-          </Button>
+        <h1 className="text-4xl font-display font-extrabold leading-[1.05] tracking-tight text-ink md:text-5xl lg:text-6xl">
+          Trendy Picks.
+          <br />
+          <span className="bg-gradient-to-r from-primary-600 via-secondary-500 to-accent-500 bg-clip-text text-transparent">
+            Everyday Essentials.
+          </span>
+        </h1>
+
+        <p className="mt-5 max-w-lg text-base leading-relaxed text-muted md:text-lg">
+          Discover curated styles, everyday must-haves and trending products —
+          refreshed every week.
+        </p>
+
+        <div className="mt-7">
+          <Link to="/products" className="inline-block">
+            <Button
+              variant="primary"
+              className="
+                !rounded-full
+                !px-10
+                !py-3
+                min-w-[230px]
+                shadow-lg
+                hover:scale-105
+                hover:shadow-card-hover
+                transition-all
+              "
+            >
+              Shop Now
+            </Button>
+          </Link>
         </div>
-      </section>
+
+        {/* Small trust line */}
+        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-muted">
+          <span>✓ Curated Products</span>
+          <span>✓ Fast Delivery</span>
+          <span>✓ Secure Payment</span>
+        </div>
+      </div>
+
+      {/* ==================== HERO IMAGE ==================== */}
+      <div className="relative hidden md:flex h-full flex-1 items-center justify-end">
+
+        {/* Image glow */}
+        <div className="absolute right-8 h-64 w-64 rounded-full bg-primary-400/20 blur-3xl lg:h-80 lg:w-80" />
+
+        <img
+          src={heroImage}
+          alt="Shop Zyqora"
+          className="relative z-10 h-64 w-auto object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.18)] transition-transform duration-500 hover:scale-105 lg:h-80"
+        />
+      </div>
+    </div>
+  </div>
+</section>  
 
       {/* ==================== TRUST BADGES ==================== */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">

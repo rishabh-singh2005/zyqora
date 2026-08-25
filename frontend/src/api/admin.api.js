@@ -23,3 +23,18 @@ export const uploadProductImages = (id, formData) =>
       headers: { "Content-Type": "multipart/form-data" },
     })
     .then((res) => res.data);
+
+export const getAllOrders = (params = {}) =>
+  axiosInstance.get("/api/admin/orders", { params }).then((res) => res.data);
+export const getAdminProducts = (params = {}) =>
+  axiosInstance.get("/api/products/admin/list", { params }).then((res) => res.data);
+export const updateOrderStatus = (id, status) =>
+  axiosInstance.patch(`/api/admin/orders/${id}/status`, { status }).then((res) => res.data);
+
+export const getAllCoupons = () => axiosInstance.get("/api/coupons").then((res) => res.data);
+export const createCoupon = (data) => axiosInstance.post("/api/coupons", data).then((res) => res.data);
+export const updateCoupon = (id, data) => axiosInstance.put(`/api/coupons/${id}`, data).then((res) => res.data);
+export const deleteCoupon = (id) => axiosInstance.delete(`/api/coupons/${id}`).then((res) => res.data);
+
+export const adjustProductStock = (id, quantityChange) =>
+  axiosInstance.patch(`/api/products/${id}/stock`, { quantityChange }).then((res) => res.data);

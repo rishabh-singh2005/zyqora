@@ -121,3 +121,53 @@ export const getDashboardStats = async () => {
   };
 };
 
+// ==================== LIST ALL ORDERS (admin) ====================
+export const listAllOrders = async (query) => {
+  const { status, page = 1, limit = 10, sortBy = "placedAt", order = "desc" } = query;
+
+  const where = {};
+  if (status) where.status = status;
+
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        items: true,
+      },
+      orderBy: { [sortBy]: order },
+      skip,
+      take: Number(limit),
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  return {
+    orders,
+    pagination: {
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil(total / Number(limit)),
+    },
+  };
+};
+
+// ==================== UPDATE ORDER STATUS (admin) ====================
+export const updateOrderStatusAdmin = async (orderId, status) => {
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+
+  if (!order) {
+    const error = new Error("Order not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { status },
+  });
+};
+

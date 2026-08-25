@@ -1,5 +1,6 @@
 import {
   listProducts,
+  listProductsForAdmin,
   getProductBySlug,
   createProduct,
   updateProduct,
@@ -8,10 +9,20 @@ import {
   adjustStock,
 } from "../services/product.service.js";
 
-// ==================== LIST PRODUCTS ====================
+// ==================== LIST PRODUCTS (public) ====================
 export const getProducts = async (req, res) => {
   try {
     const result = await listProducts(req.query);
+    res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+// ==================== LIST PRODUCTS (admin, ownership-filtered) ====================
+export const getProductsAdmin = async (req, res) => {
+  try {
+    const result = await listProductsForAdmin(req.user.id, req.user.role, req.query);
     res.status(200).json({ success: true, ...result });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
@@ -31,7 +42,7 @@ export const getProduct = async (req, res) => {
 // ==================== CREATE PRODUCT ====================
 export const addProduct = async (req, res) => {
   try {
-    const product = await createProduct(req.body);
+    const product = await createProduct(req.body, req.user.id);
     res.status(201).json({ success: true, product });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
@@ -41,7 +52,7 @@ export const addProduct = async (req, res) => {
 // ==================== UPDATE PRODUCT ====================
 export const editProduct = async (req, res) => {
   try {
-    const product = await updateProduct(req.params.id, req.body);
+    const product = await updateProduct(req.params.id, req.body, req.user.id, req.user.role);
     res.status(200).json({ success: true, product });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
@@ -51,7 +62,7 @@ export const editProduct = async (req, res) => {
 // ==================== DELETE PRODUCT ====================
 export const removeProduct = async (req, res) => {
   try {
-    await deleteProduct(req.params.id);
+    await deleteProduct(req.params.id, req.user.id, req.user.role);
     res.status(200).json({ success: true, message: "Product deactivated" });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
@@ -66,7 +77,7 @@ export const uploadProductImages = async (req, res) => {
     }
 
     const imageUrls = req.files.map((file) => file.path);
-    const images = await addProductImages(req.params.id, imageUrls);
+    const images = await addProductImages(req.params.id, imageUrls, req.user.id, req.user.role);
 
     res.status(201).json({ success: true, images });
   } catch (error) {
@@ -77,7 +88,7 @@ export const uploadProductImages = async (req, res) => {
 // ==================== ADJUST STOCK ====================
 export const updateStock = async (req, res) => {
   try {
-    const product = await adjustStock(req.params.id, req.body.quantityChange);
+    const product = await adjustStock(req.params.id, req.body.quantityChange, req.user.id, req.user.role);
     res.status(200).json({ success: true, product });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });

@@ -8,7 +8,7 @@ const slugify = (text) =>
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-");
 
-// ==================== LIST PRODUCTS (search, filter, sort, pagination) ====================
+// ==================== LIST PRODUCTS (public storefront — search, filter, sort, pagination) ====================
 export const listProducts = async (query) => {
   const {
     search,
@@ -61,7 +61,40 @@ export const listProducts = async (query) => {
   };
 };
 
-// ==================== GET SINGLE PRODUCT ====================
+// ==================== LIST PRODUCTS FOR ADMIN (ownership-filtered) ====================
+export const listProductsForAdmin = async (userId, userRole, query) => {
+  const { page = 1, limit = 50 } = query;
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const where = {};
+  // Super Admin sees everything; regular Admin sees only their own + legacy (null owner)
+  if (userRole !== "SUPER_ADMIN") {
+    where.OR = [{ createdById: userId }, { createdById: null }];
+  }
+
+  const [products, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      include: { images: true, category: true },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: Number(limit),
+    }),
+    prisma.product.count({ where }),
+  ]);
+
+  return {
+    products,
+    pagination: {
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil(total / Number(limit)),
+    },
+  };
+};
+
+// ==================== GET SINGLE PRODUCT (public) ====================
 export const getProductBySlug = async (slug) => {
   const product = await prisma.product.findUnique({
     where: { slug },
@@ -77,8 +110,20 @@ export const getProductBySlug = async (slug) => {
   return product;
 };
 
+// ==================== OWNERSHIP CHECK HELPER ====================
+const assertCanManage = (product, userId, userRole) => {
+  const isOwner = product.createdById === userId || product.createdById === null;
+  const canManage = userRole === "SUPER_ADMIN" || isOwner;
+
+  if (!canManage) {
+    const error = new Error("You can only manage products you created");
+    error.statusCode = 403;
+    throw error;
+  }
+};
+
 // ==================== CREATE PRODUCT ====================
-export const createProduct = async (data) => {
+export const createProduct = async (data, userId) => {
   const { name, description, price, discountPct, stock, categoryId } = data;
   const slug = slugify(name);
 
@@ -91,19 +136,22 @@ export const createProduct = async (data) => {
       discountPct: Number(discountPct) || 0,
       stock: Number(stock) || 0,
       categoryId,
+      createdById: userId,
     },
     include: { category: true },
   });
 };
 
 // ==================== UPDATE PRODUCT ====================
-export const updateProduct = async (id, data) => {
+export const updateProduct = async (id, data, userId, userRole) => {
   const product = await prisma.product.findUnique({ where: { id } });
   if (!product) {
     const error = new Error("Product not found");
     error.statusCode = 404;
     throw error;
   }
+
+  assertCanManage(product, userId, userRole);
 
   const updateData = { ...data };
   if (data.name) updateData.slug = slugify(data.name);
@@ -114,7 +162,7 @@ export const updateProduct = async (id, data) => {
 };
 
 // ==================== DELETE (SOFT) PRODUCT ====================
-export const deleteProduct = async (id) => {
+export const deleteProduct = async (id, userId, userRole) => {
   const product = await prisma.product.findUnique({ where: { id } });
   if (!product) {
     const error = new Error("Product not found");
@@ -122,17 +170,21 @@ export const deleteProduct = async (id) => {
     throw error;
   }
 
+  assertCanManage(product, userId, userRole);
+
   await prisma.product.update({ where: { id }, data: { isActive: false } });
 };
 
 // ==================== ADD PRODUCT IMAGES ====================
-export const addProductImages = async (productId, imageUrls) => {
+export const addProductImages = async (productId, imageUrls, userId, userRole) => {
   const product = await prisma.product.findUnique({ where: { id: productId } });
   if (!product) {
     const error = new Error("Product not found");
     error.statusCode = 404;
     throw error;
   }
+
+  assertCanManage(product, userId, userRole);
 
   const images = await prisma.$transaction(
     imageUrls.map((url, index) =>
@@ -146,13 +198,15 @@ export const addProductImages = async (productId, imageUrls) => {
 };
 
 // ==================== UPDATE STOCK ====================
-export const adjustStock = async (id, quantityChange) => {
+export const adjustStock = async (id, quantityChange, userId, userRole) => {
   const product = await prisma.product.findUnique({ where: { id } });
   if (!product) {
     const error = new Error("Product not found");
     error.statusCode = 404;
     throw error;
   }
+
+  assertCanManage(product, userId, userRole);
 
   return prisma.product.update({
     where: { id },

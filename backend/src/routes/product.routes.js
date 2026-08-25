@@ -14,6 +14,8 @@ import { productSchema } from "../validators/product.validator.js";
 import { uploadProductImage } from "../middlewares/upload.js";
 import { listReviews, createReview } from "../controllers/review.controller.js";
 import { reviewSchema } from "../validators/review.validator.js";
+import { getProductsAdmin } from "../controllers/product.controller.js";
+
 
 const router = express.Router();
 
@@ -25,6 +27,7 @@ router.put("/:id", authenticate, editProduct);
 router.delete("/:id", authenticate, removeProduct);
 router.post("/:id/images", authenticate, uploadProductImage.array("images", 5), uploadProductImages);
 router.patch("/:id/stock", authenticate, updateStock);
+router.get("/admin/list", authenticate, getProductsAdmin);
 
 
 // ==================== PRODUCT REVIEW ROUTES ====================

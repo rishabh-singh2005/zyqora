@@ -58,12 +58,12 @@ export default function ProductCard({ product }) {
   return (
     <div className="group bg-white rounded-xl2 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 overflow-hidden">
       <Link to={`/products/${product.slug}`}>
-        <div className="relative bg-primary-50/50 aspect-square flex items-center justify-center p-6">
-          <img
-            src={image}
-            alt={product.name}
-            className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
-          />
+        <div className="relative bg-primary-50/50 aspect-square overflow-hidden">
+    <img
+      src={image}
+      alt={product.name}
+      className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-300"
+    />
 
           <button
           onClick={handleWishlist}

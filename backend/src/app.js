@@ -17,6 +17,7 @@ import planRoutes from "./routes/plan.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import geocodeRoutes from "./routes/geocode.routes.js";
 
 
 
@@ -54,6 +55,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/reviews", reviewRoutes);
 
 app.use("/api/notifications", notificationRoutes);
+
+app.use("/api/geocode", geocodeRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Backend is alive" });

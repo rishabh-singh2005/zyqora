@@ -9,6 +9,9 @@ import {
   deleteAddress,
   setDefaultAddress,
 } from "../../api/address.api";
+import AddressAutocomplete from "../../components/common/AddressAutocomplete";
+import AddressMap from "../../components/common/AddressMap";
+import { reverseGeocode } from "../../api/geocode.api";
 
 const EMPTY_FORM = {
   fullName: "",
@@ -28,6 +31,35 @@ export default function Addresses() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
+  const handleAddressSelect = (result) => {
+  setForm({
+    ...form,
+    line1: result.displayName.split(",")[0],
+    city: result.city,
+    state: result.state,
+    postalCode: result.postalCode,
+  });
+  setSelectedLocation({ lat: result.lat, lon: result.lon });
+};
+
+const handleMapClick = async (lat, lon) => {
+  setSelectedLocation({ lat, lon });
+  try {
+    const res = await reverseGeocode(lat, lon);
+    setForm({
+      ...form,
+      line1: res.result.displayName.split(",")[0],
+      city: res.result.city,
+      state: res.result.state,
+      postalCode: res.result.postalCode,
+    });
+  } catch (err) {
+    console.error("Reverse geocode failed:", err);
+  }
+};
+
 
   const loadAddresses = () => {
     getAddresses()
@@ -99,6 +131,8 @@ export default function Addresses() {
   }
 
   return (
+   
+
     <div className="max-w-3xl mx-auto px-6 py-8">
       <Breadcrumb items={[{ label: "My Profile", to: "/profile" }, { label: "Addresses" }]} />
 
@@ -122,7 +156,20 @@ export default function Addresses() {
               {error}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-4">
+
+
+            <form onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-4">
+            {/* ==================== ADDRESS AUTOCOMPLETE + MAP ==================== */}
+            <div className="sm:col-span-2 space-y-3">
+            <AddressAutocomplete onSelect={handleAddressSelect} />
+            <AddressMap
+              lat={selectedLocation?.lat}
+              lon={selectedLocation?.lon}
+              label={form.line1}
+              onMapClick={handleMapClick}
+            />
+          </div>
+
             <input
               name="fullName"
               value={form.fullName}
@@ -147,6 +194,7 @@ export default function Addresses() {
               required
               className="sm:col-span-2 rounded-lg border border-primary-100 px-4 py-2.5 font-body text-sm focus:border-primary-500 outline-none"
             />
+
             <input
               name="line2"
               value={form.line2}

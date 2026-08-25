@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, Upload } from "lucide-react";
-import { fetchProducts, fetchCategories } from "../../api/product.api";
-import { createProduct, updateProduct, deleteProduct, uploadProductImages } from "../../api/admin.api";
+import { fetchCategories } from "../../api/product.api";
+import {
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  uploadProductImages,
+  adjustProductStock,
+} from "../../api/admin.api";
+import { getAdminProducts } from "../../api/admin.api";
 
 const EMPTY_FORM = {
   name: "",
@@ -22,15 +29,15 @@ export default function AdminProducts() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [uploadingFor, setUploadingFor] = useState(null);
-
+  const [selectedImages, setSelectedImages] = useState([]);
   const loadData = () => {
-    Promise.all([fetchProducts({ limit: 50 }), fetchCategories()])
-      .then(([productRes, categoryRes]) => {
-        setProducts(productRes.products || []);
-        setCategories(categoryRes.categories || []);
-      })
-      .finally(() => setLoading(false));
-  };
+  Promise.all([getAdminProducts({ limit: 50 }), fetchCategories()])
+    .then(([productRes, categoryRes]) => {
+      setProducts(productRes.products || []);
+      setCategories(categoryRes.categories || []);
+    })
+    .finally(() => setLoading(false));
+};
 
   useEffect(() => {
     loadData();
@@ -39,44 +46,58 @@ export default function AdminProducts() {
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const openAddForm = () => {
-    setForm(EMPTY_FORM);
-    setEditingId(null);
-    setShowForm(true);
-    setError("");
-  };
+  setForm(EMPTY_FORM);
+  setEditingId(null);
+  setSelectedImages([]);
+  setShowForm(true);
+  setError("");
+};
 
-  const openEditForm = (product) => {
-    setForm({
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      discountPct: product.discountPct,
-      stock: product.stock,
-      categoryId: product.categoryId,
-    });
-    setEditingId(product.id);
-    setShowForm(true);
-    setError("");
-  };
+const openEditForm = (product) => {
+  setForm({
+    name: product.name,
+    description: product.description,
+    price: product.price,
+    discountPct: product.discountPct,
+    stock: product.stock,
+    categoryId: product.categoryId,
+  });
+  setEditingId(product.id);
+  setSelectedImages([]);
+  setShowForm(true);
+  setError("");
+};
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setError("");
-    try {
-      if (editingId) {
-        await updateProduct(editingId, form);
-      } else {
-        await createProduct(form);
-      }
-      setShowForm(false);
-      loadData();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to save product");
-    } finally {
-      setSaving(false);
+  e.preventDefault();
+  setSaving(true);
+  setError("");
+  try {
+    let productId = editingId;
+
+    if (editingId) {
+      await updateProduct(editingId, form);
+    } else {
+      const res = await createProduct(form);
+      productId = res.product.id;
     }
-  };
+
+    // ==================== UPLOAD SELECTED IMAGES ====================
+    if (selectedImages.length > 0 && productId) {
+      const formData = new FormData();
+      selectedImages.forEach((file) => formData.append("images", file));
+      await uploadProductImages(productId, formData);
+    }
+
+    setShowForm(false);
+    setSelectedImages([]);
+    loadData();
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to save product");
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleDelete = async (id) => {
     if (!confirm("Deactivate this product?")) return;
@@ -99,6 +120,16 @@ export default function AdminProducts() {
       alert(err.response?.data?.message || "Failed to upload images");
     } finally {
       setUploadingFor(null);
+    }
+  };
+
+  // ==================== STOCK ADJUSTMENT ====================
+  const handleStockAdjust = async (productId, change) => {
+    try {
+      await adjustProductStock(productId, change);
+      loadData();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to adjust stock");
     }
   };
 
@@ -186,6 +217,27 @@ export default function AdminProducts() {
               className="rounded-lg border border-primary-100 px-4 py-2.5 font-body text-sm focus:border-primary-500 outline-none"
             />
 
+            {/* ==================== IMAGE UPLOAD ==================== */}
+      <div className="sm:col-span-2">
+        <label className="block text-sm font-body font-medium text-ink mb-1.5">
+          Product Images
+        </label>
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={(e) => setSelectedImages(Array.from(e.target.files))}
+          className="w-full rounded-lg border border-primary-100 px-4 py-2.5 font-body text-sm focus:border-primary-500 outline-none file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:bg-primary-100 file:text-primary-600 file:text-sm file:font-body"
+        />
+        {selectedImages.length > 0 && (
+          <p className="text-xs font-body text-muted mt-1.5">
+            {selectedImages.length} image{selectedImages.length > 1 ? "s" : ""} selected
+          </p>
+        )}
+      </div>
+
+
+
             <div className="sm:col-span-2 flex gap-3 pt-2">
               <button
                 type="submit"
@@ -225,9 +277,23 @@ export default function AdminProducts() {
                 <td className="p-4 text-muted">{product.category?.name}</td>
                 <td className="p-4 text-ink">₹{product.price}</td>
                 <td className="p-4">
-                  <span className={product.stock < 10 ? "text-secondary-600 font-medium" : "text-ink"}>
-                    {product.stock}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleStockAdjust(product.id, -1)}
+                      className="w-6 h-6 rounded-full border border-primary-100 text-muted hover:border-primary-500 transition"
+                    >
+                      −
+                    </button>
+                    <span className={product.stock < 10 ? "text-secondary-600 font-medium" : "text-ink"}>
+                      {product.stock}
+                    </span>
+                    <button
+                      onClick={() => handleStockAdjust(product.id, 1)}
+                      className="w-6 h-6 rounded-full border border-primary-100 text-muted hover:border-primary-500 transition"
+                    >
+                      +
+                    </button>
+                  </div>
                 </td>
                 <td className="p-4">
                   <label className="flex items-center gap-1 text-primary-600 cursor-pointer hover:underline">
