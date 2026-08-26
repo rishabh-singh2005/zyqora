@@ -10,20 +10,37 @@ const prisma = new PrismaClient({ adapter });
 
 // ==================== SEED SUPER ADMIN ====================
 async function main() {
-  const existing = await prisma.user.findUnique({
-    where: { email: "rishabhrajput1723@gmail.com" },
+  const email = process.env.SUPER_ADMIN_EMAIL;
+  const password = process.env.SUPER_ADMIN_PASSWORD;
+
+  if (!email || !password) {
+    throw new Error(
+      "SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD must be set."
+    );
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
   });
 
-  if (existing) {
-    console.log("Super Admin already exists, skipping seed.");
+  if (existingUser) {
+    const superAdmin = await prisma.user.update({
+      where: { email },
+      data: {
+        role: "SUPER_ADMIN",
+        isEmailVerified: true,
+      },
+    });
+
+    console.log("Existing user promoted to Super Admin:", superAdmin.email);
     return;
   }
 
-  const hashedPassword = await bcrypt.hash("Rishabh@2005", 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const superAdmin = await prisma.user.create({
     data: {
-      email: "rishabhrajput1723@gmail.com",
+      email,
       password: hashedPassword,
       name: "System Owner",
       role: "SUPER_ADMIN",
