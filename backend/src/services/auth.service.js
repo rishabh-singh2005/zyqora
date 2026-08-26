@@ -46,7 +46,18 @@ export const loginUser = async ({ email, password }) => {
   }
 
   if (!user.isEmailVerified) {
-    const error = new Error("Please verify your email before logging in");
+    const verificationToken = uuidv4();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { verificationToken },
+    });
+
+    await sendVerificationEmail(user.email, verificationToken);
+
+    const error = new Error(
+      "Please verify your email before logging in. A new verification link has been sent."
+    );
     error.statusCode = 403;
     throw error;
   }
