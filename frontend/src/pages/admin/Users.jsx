@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Search, Ban, ShieldCheck } from "lucide-react";
 import { getUsers, updateUserRole, updateUserStatus } from "../../api/admin.api";
+import { useSearchParams } from "react-router-dom";
+// inside component:
 
 export default function AdminUsers() {
   const { user: currentUser } = useSelector((state) => state.auth);
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
 
@@ -18,8 +21,10 @@ export default function AdminUsers() {
   };
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+  const urlSearch = searchParams.get("search") || "";
+  setSearch(urlSearch);
+  loadUsers(urlSearch);
+}, [searchParams]);
 
   const handleSearch = (e) => {
     e.preventDefault();

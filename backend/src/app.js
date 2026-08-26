@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import passport from "./config/passport.js";
 import authRoutes from "./routes/auth.routes.js";
-import jwt from "jsonwebtoken";
 import userRoutes from "./routes/user.routes.js";
 import addressRoutes from "./routes/address.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
@@ -25,7 +24,23 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
+// Render sits behind a reverse proxy. This makes HTTPS-aware middleware work correctly.
+app.set("trust proxy", 1);
+
+const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || "http://localhost:5173")
+  .split(",")
+  .map((url) => url.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Origin is not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
@@ -60,16 +75,6 @@ app.use("/api/geocode", geocodeRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Backend is alive" });
-});
-
-app.get("/api/test-token", (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    res.json({ valid: true, decoded });
-  } catch (err) {
-    res.status(401).json({ valid: false, message: err.message });
-  }
 });
 
 export default app;

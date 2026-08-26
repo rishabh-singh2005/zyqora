@@ -32,7 +32,8 @@ export default function Login() {
       const data = await loginUser(form);
       dispatch(authSuccess({ user: data.user, accessToken: data.accessToken }));
       sessionStorage.removeItem("postLoginRedirect");
-      navigate(from);
+      const isAdmin = data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN";
+      navigate(isAdmin ? "/admin" : from);
     } catch (err) {
       const message = err.response?.data?.message || "Login failed. Please try again.";
       setError(message);

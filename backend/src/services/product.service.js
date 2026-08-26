@@ -24,7 +24,10 @@ export const listProducts = async (query) => {
   const where = { isActive: true };
 
   if (search) {
-    where.name = { contains: search, mode: "insensitive" };
+  where.OR = [
+    { name: { contains: search, mode: "insensitive" } },
+    { category: { name: { contains: search, mode: "insensitive" } } },
+  ];
   }
 
   if (category) {
@@ -61,15 +64,16 @@ export const listProducts = async (query) => {
   };
 };
 
-// ==================== LIST PRODUCTS FOR ADMIN (ownership-filtered) ====================
 export const listProductsForAdmin = async (userId, userRole, query) => {
-  const { page = 1, limit = 50 } = query;
+  const { page = 1, limit = 50, search } = query;
   const skip = (Number(page) - 1) * Number(limit);
 
   const where = {};
-  // Super Admin sees everything; regular Admin sees only their own + legacy (null owner)
   if (userRole !== "SUPER_ADMIN") {
     where.OR = [{ createdById: userId }, { createdById: null }];
+  }
+  if (search) {
+    where.name = { contains: search, mode: "insensitive" };
   }
 
   const [products, total] = await Promise.all([
@@ -85,15 +89,9 @@ export const listProductsForAdmin = async (userId, userRole, query) => {
 
   return {
     products,
-    pagination: {
-      total,
-      page: Number(page),
-      limit: Number(limit),
-      totalPages: Math.ceil(total / Number(limit)),
-    },
+    pagination: { total, page: Number(page), limit: Number(limit) },
   };
 };
-
 // ==================== GET SINGLE PRODUCT (public) ====================
 export const getProductBySlug = async (slug) => {
   const product = await prisma.product.findUnique({

@@ -149,7 +149,7 @@ export default function Navbar() {
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search products..."
+          placeholder="Search products or categories..."
           aria-label="Search products"
           className="w-full rounded-full border border-primary-100 bg-white px-5 py-2.5 pr-11 font-body text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition"
         />
@@ -165,8 +165,8 @@ export default function Navbar() {
       </form>
 
      {/* ==================== ADMIN BUTTON ==================== */}
-    {isAuthenticated &&
-      (user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
+        {isAuthenticated &&
+        (user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
         <Link
           to="/admin"
           aria-label="Admin Panel"
@@ -198,6 +198,8 @@ export default function Navbar() {
           </span>
         </Link>
       )}
+
+      
       {/* ==================== ACTIONS ==================== */}
       <nav className="flex items-center gap-5 shrink-0 ml-2">
 

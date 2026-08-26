@@ -3,6 +3,7 @@ import { loginUser } from "../services/auth.service.js";
 import { verifyUserEmail } from "../services/auth.service.js";
 import { refreshAccessToken } from "../services/auth.service.js";
 import { logoutUser } from "../services/auth.service.js";
+import { refreshCookieOptions } from "../utils/refreshCookie.js";
 
 
 
@@ -25,12 +26,7 @@ export const login = async (req, res) => {
   try {
     const { accessToken, refreshToken, user } = await loginUser(req.body);
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
     res.status(200).json({ success: true, accessToken, user });
   } catch (error) {
@@ -65,12 +61,7 @@ export const refresh = async (req, res) => {
     const incomingToken = req.cookies.refreshToken;
     const { newAccessToken, newRefreshToken } = await refreshAccessToken(incomingToken);
 
-    res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", newRefreshToken, refreshCookieOptions);
 
     res.status(200).json({ success: true, accessToken: newAccessToken });
   } catch (error) {
@@ -89,7 +80,7 @@ export const logout = async (req, res) => {
     const incomingToken = req.cookies.refreshToken;
     await logoutUser(incomingToken);
 
-    res.clearCookie("refreshToken");
+    res.clearCookie("refreshToken", refreshCookieOptions);
     res.status(200).json({ success: true, message: "Logged out successfully" });
   } catch (error) {
     res.status(error.statusCode || 500).json({

@@ -3,8 +3,9 @@ import passport from "passport";
 import { signup, login, verifyEmail, refresh, logout } from "../controllers/auth.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { signupSchema, loginSchema } from "../validators/auth.validator.js";
-import { generateAccessToken, generateRefreshToken } from "../services/token.service.js";
+import { generateRefreshToken } from "../services/token.service.js";
 import { prisma } from "../config/db.js";
+import { refreshCookieOptions } from "../utils/refreshCookie.js";
 
 const router = express.Router();
 
@@ -32,7 +33,6 @@ router.get(
   passport.authenticate("google", { session: false, failureRedirect: "/login-failed" }),
   async (req, res) => {
     const user = req.user;
-    const accessToken = generateAccessToken(user.id, user.role);
     const refreshToken = generateRefreshToken(user.id);
 
     await prisma.refreshToken.create({
@@ -43,14 +43,9 @@ router.get(
       },
     });
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
-    res.redirect(`${process.env.CLIENT_URL}/oauth-success?accessToken=${accessToken}`);
+    res.redirect(`${process.env.CLIENT_URL}/oauth-success`);
   }
 );
 
@@ -65,7 +60,6 @@ router.get(
   passport.authenticate("facebook", { session: false, failureRedirect: "/login-failed" }),
   async (req, res) => {
     const user = req.user;
-    const accessToken = generateAccessToken(user.id, user.role);
     const refreshToken = generateRefreshToken(user.id);
 
     await prisma.refreshToken.create({
@@ -76,14 +70,9 @@ router.get(
       },
     });
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
-    res.redirect(`${process.env.CLIENT_URL}/oauth-success?accessToken=${accessToken}`);
+    res.redirect(`${process.env.CLIENT_URL}/oauth-success`);
   }
 );
 

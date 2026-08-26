@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 // ==================== GENERATE ACCESS TOKEN ====================
 export const generateAccessToken = (userId, role) => {
   return jwt.sign({ userId, role }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: "6h",
+    expiresIn: "15m",
   });
 };
 

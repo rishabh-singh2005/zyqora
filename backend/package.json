@@ -7,10 +7,15 @@
   "scripts": {
     "dev": "npx nodemon src/server.js",
     "start": "node src/server.js",
+    "build": "prisma generate",
+    "migrate:deploy": "prisma migrate deploy",
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
     "seed": "node src/prisma/seed.js",
     "seed:products": "node src/prisma/seedProducts.js"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   },
   "keywords": [],
   "author": "",
