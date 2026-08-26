@@ -32,6 +32,7 @@ import AdminUsers from "./pages/admin/Users";
 import About from "./pages/user/About";
 import Contact from "./pages/user/Contact";
 import Terms from "./pages/user/Terms";
+import VerifyEmail from "./pages/user/VerifyEmail";
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -95,6 +96,7 @@ function AppContent() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
           <Route
             path="/admin/*"

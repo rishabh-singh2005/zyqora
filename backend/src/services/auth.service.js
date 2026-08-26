@@ -45,6 +45,12 @@ export const loginUser = async ({ email, password }) => {
     throw error;
   }
 
+  if (!user.isEmailVerified) {
+    const error = new Error("Please verify your email before logging in");
+    error.statusCode = 403;
+    throw error;
+  }
+
   const accessToken = generateAccessToken(user.id, user.role);
   const refreshToken = generateRefreshToken(user.id);
 
