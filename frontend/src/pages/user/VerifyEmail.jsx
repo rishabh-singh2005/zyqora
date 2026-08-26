@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { CheckCircle2, XCircle } from "lucide-react";
 import axiosInstance from "../../api/axiosInstance";
@@ -7,21 +7,39 @@ import logo from "../../assets/logo.png";
 
 export default function VerifyEmail() {
   const { token } = useParams();
-  const [status, setStatus] = useState("verifying"); // verifying | success | error
+  const [status, setStatus] = useState("ready"); // ready | verifying | success | error
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    axiosInstance
-      .get(`/api/auth/verify/${token}`)
-      .then((res) => {
-        setStatus("success");
-        setMessage(res.data.message);
-      })
-      .catch((err) => {
-        setStatus("error");
-        setMessage(err.response?.data?.message || "Verification failed. The link may be invalid or expired.");
-      });
-  }, [token]);
+  const handleVerification = async () => {
+    setStatus("verifying");
+    setMessage("");
+
+    try {
+      const res = await axiosInstance.post(`/api/auth/verify/${token}`);
+      setStatus("success");
+      setMessage(res.data.message);
+    } catch (err) {
+      setStatus("error");
+      setMessage(err.response?.data?.message || "Verification failed. The link may be invalid or expired.");
+    }
+  };
+
+  if (status === "ready") {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-md bg-white/80 backdrop-blur-sm rounded-xl2 shadow-soft p-10 text-center space-y-4">
+          <img src={logo} alt="Zyqora" className="h-14 mx-auto rounded-xl2" />
+          <h1 className="text-2xl font-display font-bold text-ink">Verify your email</h1>
+          <p className="text-sm font-body text-muted">
+            Confirm that you want to verify this email address before continuing.
+          </p>
+          <Button variant="primary" onClick={handleVerification}>
+            Verify Email
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6 py-12">

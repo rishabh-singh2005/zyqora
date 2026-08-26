@@ -16,7 +16,9 @@ router.post("/signup", validate(signupSchema), signup);
 router.post("/login", validate(loginSchema), login);
 
 // ==================== VERIFY EMAIL ROUTE ====================
-router.get("/verify/:token", verifyEmail);
+// Verification changes account state, so require an explicit POST instead of a
+// GET request that email security scanners may follow automatically.
+router.post("/verify/:token", verifyEmail);
 
 // ==================== REFRESH & LOGOUT ROUTES ====================
 router.post("/refresh", refresh);
