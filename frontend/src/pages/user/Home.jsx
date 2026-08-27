@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Truck, ShieldCheck, Tag, ShoppingBag } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Truck, ShieldCheck, Tag, ShoppingBag, CheckCircle2, X } from "lucide-react";
 import Button from "../../components/common/Button";
 import ProductCard from "../../components/product/ProductCard";
 import { fetchProducts, fetchCategories } from "../../api/product.api";
@@ -18,6 +18,16 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const isVerified = searchParams.get("verified") === "true";
+  const [showVerifiedBanner, setShowVerifiedBanner] = useState(isVerified);
+
+  useEffect(() => {
+    if (isVerified) {
+      setShowVerifiedBanner(true);
+    }
+  }, [isVerified]);
 
   useEffect(() => {
     Promise.all([
@@ -33,7 +43,26 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-14">
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      {/* ==================== VERIFICATION SUCCESS BANNER ==================== */}
+      {showVerifiedBanner && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-5 py-4 rounded-xl flex items-center justify-between shadow-sm animate-fadeIn">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 size={22} className="text-emerald-600 shrink-0" />
+            <div>
+              <p className="font-semibold text-sm">Email Verified Successfully! 🎉</p>
+              <p className="text-xs text-emerald-700">Your Zyqora account is activated and ready. Welcome aboard!</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowVerifiedBanner(false)}
+            className="text-emerald-600 hover:text-emerald-800 p-1.5 rounded-lg hover:bg-emerald-100/60 transition"
+            title="Dismiss"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
       
       {/* ==================== HERO ==================== */}
 <section>

@@ -6,7 +6,7 @@ import { verifyRefreshToken } from "./token.service.js";
 import { sendVerificationEmail } from "./email.service.js";
 
 // ==================== SIGNUP ====================
-export const signupUser = async ({ email, password, name }) => {
+export const signupUser = async ({ email, password, name }, clientOrigin = "") => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
   // If user exists and is already verified, block registration
@@ -60,7 +60,7 @@ export const signupUser = async ({ email, password, name }) => {
   // Dispatch verification email in a resilient manner (never throws to block signup)
   let emailSent = false;
   try {
-    const result = await sendVerificationEmail(user.email, verificationToken, user.name);
+    const result = await sendVerificationEmail(user.email, verificationToken, user.name, clientOrigin);
     emailSent = !!result?.success;
   } catch (emailErr) {
     console.error("⚠️ [AuthService] Failed to send verification email during signup:", emailErr.message);
@@ -77,7 +77,7 @@ export const signupUser = async ({ email, password, name }) => {
 };
 
 // ==================== RESEND VERIFICATION EMAIL ====================
-export const resendVerificationToken = async (email) => {
+export const resendVerificationToken = async (email, clientOrigin = "") => {
   const user = await prisma.user.findUnique({ where: { email } });
 
   // For security, do not expose whether an email exists
@@ -101,7 +101,7 @@ export const resendVerificationToken = async (email) => {
   });
 
   try {
-    await sendVerificationEmail(user.email, verificationToken, user.name);
+    await sendVerificationEmail(user.email, verificationToken, user.name, clientOrigin);
   } catch (emailErr) {
     console.error("⚠️ [AuthService] Failed to resend verification email:", emailErr.message);
   }
@@ -112,7 +112,7 @@ export const resendVerificationToken = async (email) => {
 };
 
 // ==================== LOGIN ====================
-export const loginUser = async ({ email, password }) => {
+export const loginUser = async ({ email, password }, clientOrigin = "") => {
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user || !user.password) {
@@ -139,7 +139,7 @@ export const loginUser = async ({ email, password }) => {
 
     // Safely attempt to resend verification email without crashing with 500
     try {
-      await sendVerificationEmail(user.email, verificationToken, user.name);
+      await sendVerificationEmail(user.email, verificationToken, user.name, clientOrigin);
     } catch (emailErr) {
       console.error("⚠️ [AuthService] Failed to send verification email on login attempt:", emailErr.message);
     }

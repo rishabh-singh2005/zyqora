@@ -18,7 +18,7 @@ import { generateRefreshToken } from "../services/token.service.js";
 import { prisma } from "../config/db.js";
 import { refreshCookieOptions } from "../utils/refreshCookie.js";
 import { v4 as uuidv4 } from "uuid";
-import { sendVerificationEmail } from "../services/email.service.js";
+import { sendVerificationEmail, getClientUrl } from "../services/email.service.js";
 
 const router = express.Router();
 
@@ -52,7 +52,8 @@ router.get(
 
 const completeOAuthLogin = async (req, res) => {
   const user = req.user;
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+  const clientOrigin = req.headers.origin || req.headers.referer || "";
+  const clientUrl = getClientUrl(clientOrigin);
 
   // OAuth proves account ownership with the provider, but if unverified, send link
   if (!user.isEmailVerified) {

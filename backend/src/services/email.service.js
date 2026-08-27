@@ -14,6 +14,43 @@ const getSenderDetails = () => {
   return { email, name };
 };
 
+// ==================== GET CLIENT FRONTEND URL ====================
+/**
+ * Intelligently determines the frontend URL for links and redirects.
+ * Prioritizes request origin header, then CLIENT_URL, then production entries from CLIENT_URLS.
+ * 
+ * @param {string} [clientOrigin] - Origin or referer header from incoming request
+ * @returns {string} Fully-qualified frontend URL without trailing slash
+ */
+export const getClientUrl = (clientOrigin = "") => {
+  // 1. If explicit clientOrigin provided from request header
+  if (clientOrigin && typeof clientOrigin === "string") {
+    const trimmed = clientOrigin.trim().replace(/\/+$/, "");
+    if (trimmed && (process.env.NODE_ENV !== "production" || (!trimmed.includes("localhost") && !trimmed.includes("127.0.0.1")))) {
+      return trimmed;
+    }
+  }
+
+  // 2. Direct process.env.CLIENT_URL
+  if (process.env.CLIENT_URL) {
+    const trimmed = process.env.CLIENT_URL.trim().replace(/\/+$/, "");
+    if (trimmed) return trimmed;
+  }
+
+  // 3. From process.env.CLIENT_URLS (find production URL first)
+  if (process.env.CLIENT_URLS) {
+    const urls = process.env.CLIENT_URLS.split(",")
+      .map((u) => u.trim().replace(/\/+$/, ""))
+      .filter(Boolean);
+    const prodUrl = urls.find((u) => !u.includes("localhost") && !u.includes("127.0.0.1"));
+    if (prodUrl) return prodUrl;
+    if (urls.length > 0) return urls[0];
+  }
+
+  // 4. Default fallback
+  return "http://localhost:5173";
+};
+
 // ==================== SEND VERIFICATION EMAIL ====================
 /**
  * Sends an email verification link to the newly registered or unverified user.
@@ -22,10 +59,11 @@ const getSenderDetails = () => {
  * @param {string} toEmail - Recipient email address
  * @param {string} token - Unique verification UUID token
  * @param {string} [recipientName] - Optional recipient display name
+ * @param {string} [clientOrigin] - Optional request origin to guarantee deployed domain links
  * @returns {Promise<{success: boolean, messageId?: string, error?: string, skipped?: boolean}>}
  */
-export const sendVerificationEmail = async (toEmail, token, recipientName = "") => {
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+export const sendVerificationEmail = async (toEmail, token, recipientName = "", clientOrigin = "") => {
+  const clientUrl = getClientUrl(clientOrigin);
   const verifyUrl = `${clientUrl}/verify-email/${token}`;
   const sender = getSenderDetails();
 
@@ -115,7 +153,7 @@ export const sendVerificationEmail = async (toEmail, token, recipientName = "") 
   };
 
   try {
-    console.log(`[EmailService] Dispatching verification email to ${toEmail}...`);
+    console.log(`[EmailService] Dispatching verification email to ${toEmail} with URL: ${verifyUrl}`);
     const [response] = await sgMail.send(mailOptions);
     const messageId = response?.headers?.["x-message-id"] || "sent";
 
