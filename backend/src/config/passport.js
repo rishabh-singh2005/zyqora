@@ -16,7 +16,7 @@ const findOrMergeUser = async ({ provider, providerId, email, name }) => {
   if (user) {
     return prisma.user.update({
       where: { id: user.id },
-      data: { [providerField]: providerId, isEmailVerified: true },
+      data: { [providerField]: providerId },
     });
   }
 
@@ -26,7 +26,6 @@ const findOrMergeUser = async ({ provider, providerId, email, name }) => {
       email,
       name,
       [providerField]: providerId,
-      isEmailVerified: true,
     },
   });
 };

@@ -19,6 +19,7 @@ export default function Login() {
     new URLSearchParams(location.search).get("from") ||
     sessionStorage.getItem("postLoginRedirect") ||
     "/";
+  const verificationSent = new URLSearchParams(location.search).get("verification") === "sent";
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -55,6 +56,12 @@ export default function Login() {
         {error && (
           <div className="bg-secondary-100 text-secondary-600 text-sm font-body rounded-lg px-4 py-3">
             {error}
+          </div>
+        )}
+
+        {verificationSent && (
+          <div className="bg-primary-50 text-primary-700 text-sm font-body rounded-lg px-4 py-3">
+            Verification email sent. Open the newest email and click Verify Email before signing in.
           </div>
         )}
 

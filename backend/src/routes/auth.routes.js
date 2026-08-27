@@ -6,6 +6,8 @@ import { signupSchema, loginSchema } from "../validators/auth.validator.js";
 import { generateRefreshToken } from "../services/token.service.js";
 import { prisma } from "../config/db.js";
 import { refreshCookieOptions } from "../utils/refreshCookie.js";
+import { v4 as uuidv4 } from "uuid";
+import { sendVerificationEmail } from "../services/email.service.js";
 
 const router = express.Router();
 
@@ -30,25 +32,41 @@ router.get(
   passport.authenticate("google", { scope: ["profile", "email"], session: false })
 );
 
+const completeOAuthLogin = async (req, res) => {
+  const user = req.user;
+
+  // OAuth proves account ownership with the provider, but this application
+  // requires explicit email verification before issuing a session.
+  if (!user.isEmailVerified) {
+    const verificationToken = uuidv4();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { verificationToken },
+    });
+    await sendVerificationEmail(user.email, verificationToken);
+
+    return res.redirect(`${process.env.CLIENT_URL}/login?verification=sent`);
+  }
+
+  const refreshToken = generateRefreshToken(user.id);
+
+  await prisma.refreshToken.create({
+    data: {
+      userId: user.id,
+      tokenHash: refreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  res.cookie("refreshToken", refreshToken, refreshCookieOptions);
+  return res.redirect(`${process.env.CLIENT_URL}/oauth-success`);
+};
+
 router.get(
   "/google/callback",
   passport.authenticate("google", { session: false, failureRedirect: "/login-failed" }),
-  async (req, res) => {
-    const user = req.user;
-    const refreshToken = generateRefreshToken(user.id);
-
-    await prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: refreshToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    });
-
-    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
-
-    res.redirect(`${process.env.CLIENT_URL}/oauth-success`);
-  }
+  completeOAuthLogin
 );
 
 // ==================== FACEBOOK OAUTH ROUTES ====================
@@ -60,22 +78,7 @@ router.get(
 router.get(
   "/facebook/callback",
   passport.authenticate("facebook", { session: false, failureRedirect: "/login-failed" }),
-  async (req, res) => {
-    const user = req.user;
-    const refreshToken = generateRefreshToken(user.id);
-
-    await prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: refreshToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    });
-
-    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
-
-    res.redirect(`${process.env.CLIENT_URL}/oauth-success`);
-  }
+  completeOAuthLogin
 );
 
 export default router;
