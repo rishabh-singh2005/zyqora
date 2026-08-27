@@ -12,7 +12,7 @@ import { refreshCookieOptions } from "../utils/refreshCookie.js";
 // ==================== SIGNUP ====================
 export const signup = async (req, res) => {
   try {
-    const clientOrigin = req.headers.origin || req.headers.referer || "";
+    const clientOrigin = req.body?.clientUrl || req.headers.origin || req.headers.referer || "";
     const user = await signupUser(req.body, clientOrigin);
     res.status(201).json({
       success: true,
@@ -32,7 +32,7 @@ export const signup = async (req, res) => {
 export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
-    const clientOrigin = req.headers.origin || req.headers.referer || "";
+    const clientOrigin = req.body?.clientUrl || req.headers.origin || req.headers.referer || "";
     const result = await resendVerificationToken(email, clientOrigin);
     res.status(200).json({
       success: true,
@@ -50,7 +50,7 @@ export const resendVerification = async (req, res) => {
 // ==================== LOGIN ====================
 export const login = async (req, res) => {
   try {
-    const clientOrigin = req.headers.origin || req.headers.referer || "";
+    const clientOrigin = req.body?.clientUrl || req.headers.origin || req.headers.referer || "";
     const { accessToken, refreshToken, user } = await loginUser(req.body, clientOrigin);
 
     res.cookie("refreshToken", refreshToken, refreshCookieOptions);

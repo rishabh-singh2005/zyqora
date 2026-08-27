@@ -17,17 +17,21 @@ const getSenderDetails = () => {
 // ==================== GET CLIENT FRONTEND URL ====================
 /**
  * Intelligently determines the frontend URL for links and redirects.
- * Prioritizes request origin header, then CLIENT_URL, then production entries from CLIENT_URLS.
+ * Prioritizes request origin (body or header), then CLIENT_URL, then production entries from CLIENT_URLS.
  * 
- * @param {string} [clientOrigin] - Origin or referer header from incoming request
+ * @param {string} [clientOrigin] - Origin, URL, or referer from incoming request
  * @returns {string} Fully-qualified frontend URL without trailing slash
  */
 export const getClientUrl = (clientOrigin = "") => {
-  // 1. If explicit clientOrigin provided from request header
+  // 1. If explicit clientOrigin provided from request body or header
   if (clientOrigin && typeof clientOrigin === "string") {
-    const trimmed = clientOrigin.trim().replace(/\/+$/, "");
-    if (trimmed && (process.env.NODE_ENV !== "production" || (!trimmed.includes("localhost") && !trimmed.includes("127.0.0.1")))) {
-      return trimmed;
+    try {
+      const url = new URL(clientOrigin.startsWith("http") ? clientOrigin : `https://${clientOrigin}`);
+      const origin = url.origin.replace(/\/+$/, "");
+      if (origin && origin !== "null") return origin;
+    } catch {
+      const trimmed = clientOrigin.trim().replace(/\/+$/, "");
+      if (trimmed) return trimmed;
     }
   }
 
