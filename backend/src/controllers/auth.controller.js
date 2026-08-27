@@ -1,13 +1,14 @@
-import { signupUser } from "../services/auth.service.js";
-import { loginUser } from "../services/auth.service.js";
-import { verifyUserEmail } from "../services/auth.service.js";
-import { refreshAccessToken } from "../services/auth.service.js";
-import { logoutUser } from "../services/auth.service.js";
+import {
+  signupUser,
+  loginUser,
+  verifyUserEmail,
+  resendVerificationToken,
+  refreshAccessToken,
+  logoutUser,
+} from "../services/auth.service.js";
 import { refreshCookieOptions } from "../utils/refreshCookie.js";
 
-
-
-//=============SIGNUP=======================================
+// ==================== SIGNUP ====================
 export const signup = async (req, res) => {
   try {
     const user = await signupUser(req.body);
@@ -15,9 +16,31 @@ export const signup = async (req, res) => {
       success: true,
       message: "Signup successful. Please verify your email.",
       userId: user.id,
+      emailSent: user.emailSent,
     });
   } catch (err) {
-    res.status(err.statusCode || 500).json({ success: false, message: err.message });
+    res.status(err.statusCode || 500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// ==================== RESEND VERIFICATION ====================
+export const resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await resendVerificationToken(email);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      alreadyVerified: !!result.alreadyVerified,
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -72,8 +95,6 @@ export const refresh = async (req, res) => {
   }
 };
 
-
-
 // ==================== LOGOUT ====================
 export const logout = async (req, res) => {
   try {
@@ -89,7 +110,3 @@ export const logout = async (req, res) => {
     });
   }
 };
-
-
-
-

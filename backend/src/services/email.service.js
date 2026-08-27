@@ -1,85 +1,141 @@
-import { Resend } from "resend";
+import sgMail from "@sendgrid/mail";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// ==================== SENDGRID CONFIGURATION ====================
+const apiKey = process.env.SENDGRID_API_KEY;
+if (apiKey) {
+  sgMail.setApiKey(apiKey);
+} else {
+  console.warn("⚠️ [EmailService] SENDGRID_API_KEY is not defined in environment variables. Outbound emails will be skipped.");
+}
+
+const getSenderDetails = () => {
+  const email = process.env.SENDGRID_FROM_EMAIL || "no-reply@zyqora.com";
+  const name = process.env.SENDGRID_FROM_NAME || "Zyqora";
+  return { email, name };
+};
 
 // ==================== SEND VERIFICATION EMAIL ====================
-export const sendVerificationEmail = async (toEmail, token) => {
+/**
+ * Sends an email verification link to the newly registered or unverified user.
+ * Designed to never throw unhandled exceptions so auth flows remain resilient.
+ * 
+ * @param {string} toEmail - Recipient email address
+ * @param {string} token - Unique verification UUID token
+ * @param {string} [recipientName] - Optional recipient display name
+ * @returns {Promise<{success: boolean, messageId?: string, error?: string, skipped?: boolean}>}
+ */
+export const sendVerificationEmail = async (toEmail, token, recipientName = "") => {
+  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+  const verifyUrl = `${clientUrl}/verify-email/${token}`;
+  const sender = getSenderDetails();
+
+  if (!process.env.SENDGRID_API_KEY) {
+    console.warn(`⚠️ [EmailService] Skipping verification email to ${toEmail} because SENDGRID_API_KEY is not set.`);
+    return {
+      success: false,
+      skipped: true,
+      error: "SENDGRID_API_KEY is not configured",
+    };
+  }
+
+  const displayName = recipientName ? recipientName.trim() : "there";
+
+  const mailOptions = {
+    to: toEmail,
+    from: {
+      email: sender.email,
+      name: sender.name,
+    },
+    subject: "Verify your Zyqora account",
+    text: `Hi ${displayName},\n\nThank you for signing up for Zyqora!\n\nPlease verify your email address by opening the following link:\n${verifyUrl}\n\nIf you did not sign up for Zyqora, you can safely ignore this email.\n\nBest regards,\nThe Zyqora Team`,
+    html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Verify your Zyqora account</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f4f6f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f6f8; padding: 40px 15px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="100%" style="max-width: 560px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+                <!-- Header -->
+                <tr>
+                  <td style="background-color: #0f172a; padding: 28px 36px; text-align: center;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 700; letter-spacing: 0.5px;">ZYQORA</h1>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 36px 36px 24px 36px;">
+                    <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 20px; font-weight: 600;">Welcome, ${displayName}! 👋</h2>
+                    <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                      Thank you for joining Zyqora. Please verify your email address to activate your account and start exploring our catalog.
+                    </p>
+                    
+                    <div style="text-align: center; margin: 32px 0;">
+                      <a href="${verifyUrl}" target="_blank" style="display: inline-block; background-color: #0f172a; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 14px 32px; border-radius: 8px; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);">
+                        Verify My Email
+                      </a>
+                    </div>
+
+                    <p style="margin: 24px 0 8px 0; font-size: 13px; line-height: 1.5; color: #64748b;">
+                      If the button above does not work, copy and paste this link into your web browser:
+                    </p>
+                    <p style="margin: 0 0 20px 0; font-size: 13px; word-break: break-all; color: #2563eb;">
+                      <a href="${verifyUrl}" target="_blank" style="color: #2563eb; text-decoration: underline;">${verifyUrl}</a>
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0;" />
+                    
+                    <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">
+                      If you did not create a Zyqora account, no further action is needed and you can safely ignore this email.
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f8fafc; padding: 20px 36px; text-align: center; border-top: 1px solid #f1f5f9;">
+                    <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+                      © ${new Date().getFullYear()} Zyqora E-Commerce. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `,
+  };
+
   try {
-    const verifyUrl = `${process.env.CLIENT_URL}/verify-email/${token}`;
+    console.log(`[EmailService] Dispatching verification email to ${toEmail}...`);
+    const [response] = await sgMail.send(mailOptions);
+    const messageId = response?.headers?.["x-message-id"] || "sent";
 
-    console.log("========== EMAIL DEBUG ==========");
-    console.log("Sending verification email to:", toEmail);
-    console.log("Verification URL:", verifyUrl);
-
-    const { data, error } = await resend.emails.send({
-      from: `Zyqora <${process.env.RESEND_FROM_EMAIL}>`,
-      to: [toEmail],
-      subject: "Verify your Zyqora account",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px;">
-          
-          <h2 style="color: #222;">
-            Welcome to Zyqora!
-          </h2>
-
-          <p>
-            Thanks for creating your account.
-            Please verify your email address to activate your account.
-          </p>
-
-          <div style="margin: 30px 0;">
-            <a
-              href="${verifyUrl}"
-              style="
-                display: inline-block;
-                padding: 12px 24px;
-                background-color: #000;
-                color: #fff;
-                text-decoration: none;
-                border-radius: 6px;
-                font-weight: bold;
-              "
-            >
-              Verify My Email
-            </a>
-          </div>
-
-          <p style="font-size: 14px; color: #666;">
-            If you did not create a Zyqora account, you can safely ignore this email.
-          </p>
-
-          <p style="font-size: 13px; color: #999;">
-            If the button doesn't work, copy and paste this link into your browser:
-          </p>
-
-          <p style="font-size: 13px; word-break: break-all;">
-            ${verifyUrl}
-          </p>
-
-        </div>
-      `,
-    });
-
-    if (error) {
-      console.error("❌ RESEND EMAIL FAILED");
-      console.error("Error:", error);
-
-      return null;
+    console.log(`✅ [EmailService] Verification email sent to ${toEmail} (Status: ${response.statusCode}, Message ID: ${messageId})`);
+    return {
+      success: true,
+      messageId,
+    };
+  } catch (error) {
+    console.error("❌ [EmailService] Failed to send verification email via SendGrid");
+    if (error.response) {
+      console.error(`Status: ${error.response.statusCode}`);
+      console.error("SendGrid Errors:", JSON.stringify(error.response.body?.errors || error.response.body, null, 2));
+    } else {
+      console.error("Error Message:", error.message);
     }
 
-    console.log("✅ EMAIL SENT SUCCESSFULLY");
-    console.log("Resend response:", data);
-    console.log("Message ID:", data?.id);
-    console.log("================================");
-
-    return data;
-
-  } catch (error) {
-    console.error("❌ RESEND EMAIL ERROR");
-    console.error("Error:", error);
-    console.error("Message:", error.message);
-    console.error("================================");
-
-    return null;
+    return {
+      success: false,
+      error: error.message || "Failed to deliver email via SendGrid",
+    };
   }
 };

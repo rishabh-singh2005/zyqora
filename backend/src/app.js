@@ -17,8 +17,8 @@ import adminRoutes from "./routes/admin.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import geocodeRoutes from "./routes/geocode.routes.js";
-
-
+import { notFound } from "./middlewares/notFound.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 dotenv.config();
 
@@ -29,52 +29,50 @@ app.set("trust proxy", 1);
 
 const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || "http://localhost:5173")
   .split(",")
-  .map((url) => url.trim())
+  .map((url) => url.trim().replace(/\/+$/, ""))
   .filter(Boolean);
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("Origin is not allowed by CORS"));
+      if (!origin) return callback(null, true);
+      const normalizedOrigin = origin.replace(/\/+$/, "");
+      if (allowedOrigins.includes(normalizedOrigin) || allowedOrigins.includes("*")) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} is not allowed by CORS`));
     },
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
+// ==================== HEALTH CHECK ====================
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", message: "Backend is alive", timestamp: new Date().toISOString() });
+});
+
+// ==================== API ROUTES ====================
 app.use("/api/auth", authRoutes);
-
 app.use("/api/users", userRoutes);
-
 app.use("/api/addresses", addressRoutes);
-
 app.use("/api/categories", categoryRoutes);
-
 app.use("/api/products", productRoutes);
-
 app.use("/api/cart", cartRoutes);
-
 app.use("/api/wishlist", wishlistRoutes);
-
 app.use("/api/coupons", couponRoutes);
-
 app.use("/api/orders", orderRoutes);
-
 app.use("/api/plans", planRoutes);
-
 app.use("/api/admin", adminRoutes);
-
 app.use("/api/reviews", reviewRoutes);
-
 app.use("/api/notifications", notificationRoutes);
-
 app.use("/api/geocode", geocodeRoutes);
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "Backend is alive" });
-});
+// ==================== 404 & ERROR HANDLING ====================
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;
