@@ -19,12 +19,28 @@ export const signupUser = async ({ email, password, name }) => {
   const verificationToken = uuidv4();
 
   const user = await prisma.user.create({
-    data: { email, password: hashedPassword, name, verificationToken },
-  });
+  data: {
+    email,
+    password: hashedPassword,
+    name,
+    verificationToken,
+  },
+    });
 
-  await sendVerificationEmail(user.email, verificationToken);
+    console.log("User created successfully:", user.email);
 
-  return { message: "Signup successful. Verify your email." };
+    // Don't wait for email sending
+    sendVerificationEmail(user.email, verificationToken)
+      .then(() => {
+        console.log("Verification email process completed");
+      })
+      .catch((error) => {
+        console.error("Verification email failed:", error);
+      });
+
+    return {
+      message: "Signup successful. Verify your email.",
+    };
 };
 
 // ==================== LOGIN ====================
