@@ -12,6 +12,9 @@ const transporter = nodemailer.createTransport({
   secure: smtpPort === 465,
   requireTLS: smtpPort === 587,
 
+  family: 4,
+  
+
   connectionTimeout: 10000,
   greetingTimeout: 10000,
   socketTimeout: 15000,
