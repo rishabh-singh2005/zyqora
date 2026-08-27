@@ -1,38 +1,6 @@
-import nodemailer from "nodemailer";
-import dns from "dns";
+import { Resend } from "resend";
 
-// Force IPv4 resolution
-dns.setDefaultResultOrder("ipv4first");
-
-const smtpPort = Number(process.env.SMTP_PORT || 587);
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: smtpPort,
-  secure: smtpPort === 465,
-  requireTLS: smtpPort === 587,
-
-  family: 4,
-  
-
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-// ==================== SMTP CONNECTION TEST ====================
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ SMTP CONNECTION FAILED:", error);
-  } else {
-    console.log("✅ SMTP SERVER IS READY");
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ==================== SEND VERIFICATION EMAIL ====================
 export const sendVerificationEmail = async (toEmail, token) => {
@@ -41,44 +9,77 @@ export const sendVerificationEmail = async (toEmail, token) => {
 
     console.log("========== EMAIL DEBUG ==========");
     console.log("Sending verification email to:", toEmail);
-    console.log("SMTP Host:", process.env.SMTP_HOST);
-    console.log("SMTP Port:", smtpPort);
-    console.log("SMTP User:", process.env.SMTP_USER);
     console.log("Verification URL:", verifyUrl);
 
-    const info = await transporter.sendMail({
-      from: `"Zyqora" <${process.env.SMTP_USER}>`,
-      to: toEmail,
-      subject: "Verify your email",
+    const { data, error } = await resend.emails.send({
+      from: `Zyqora <${process.env.RESEND_FROM_EMAIL}>`,
+      to: [toEmail],
+      subject: "Verify your Zyqora account",
       html: `
-        <p>Welcome! Please verify your email to activate your account.</p>
-        <p>
-          <a href="${verifyUrl}">
-            Click here to verify
-          </a>
-        </p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px;">
+          
+          <h2 style="color: #222;">
+            Welcome to Zyqora!
+          </h2>
+
+          <p>
+            Thanks for creating your account.
+            Please verify your email address to activate your account.
+          </p>
+
+          <div style="margin: 30px 0;">
+            <a
+              href="${verifyUrl}"
+              style="
+                display: inline-block;
+                padding: 12px 24px;
+                background-color: #000;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: bold;
+              "
+            >
+              Verify My Email
+            </a>
+          </div>
+
+          <p style="font-size: 14px; color: #666;">
+            If you did not create a Zyqora account, you can safely ignore this email.
+          </p>
+
+          <p style="font-size: 13px; color: #999;">
+            If the button doesn't work, copy and paste this link into your browser:
+          </p>
+
+          <p style="font-size: 13px; word-break: break-all;">
+            ${verifyUrl}
+          </p>
+
+        </div>
       `,
     });
 
+    if (error) {
+      console.error("❌ RESEND EMAIL FAILED");
+      console.error("Error:", error);
+
+      return null;
+    }
+
     console.log("✅ EMAIL SENT SUCCESSFULLY");
-    console.log("Message ID:", info.messageId);
-    console.log("Accepted:", info.accepted);
-    console.log("Rejected:", info.rejected);
-    console.log("Response:", info.response);
+    console.log("Resend response:", data);
+    console.log("Message ID:", data?.id);
     console.log("================================");
 
-    return info;
+    return data;
 
   } catch (error) {
-    console.error("❌ EMAIL SENDING FAILED");
+    console.error("❌ RESEND EMAIL ERROR");
     console.error("Error:", error);
     console.error("Message:", error.message);
-    console.error("Code:", error.code);
-    console.error("Command:", error.command);
     console.error("================================");
 
-    // Don't throw.
-    // Signup should not fail because of email delivery.
     return null;
   }
 };
