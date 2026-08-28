@@ -46,8 +46,8 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md bg-white/80 backdrop-blur-sm rounded-xl2 shadow-soft p-10 space-y-6">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-2">
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-sm rounded-xl2 shadow-soft p-4 space-y-6">
         <div className="text-center space-y-2">
           <img src={logo} alt="Zyqora" className="h-14 mx-auto rounded-xl2" />
           <h1 className="text-2xl font-display font-bold text-ink">Create your account</h1>
@@ -55,12 +55,12 @@ export default function Signup() {
         </div>
 
         {error && (
-          <div className="bg-secondary-100 text-secondary-600 text-sm font-body rounded-lg px-4 py-3">
+          <div className="bg-secondary-100 text-secondary-600 text-sm font-body rounded-lg px-4 py-2">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-2">
           <div>
             <label className="text-sm font-body font-medium text-ink">Full Name</label>
             <input
@@ -99,7 +99,7 @@ export default function Signup() {
             />
           </div>
 
-          <Button variant="primary" className="w-full" disabled={loading}>
+          <Button variant="primary" className="w-full"  disabled={loading}>
             {loading ? "Creating account..." : "Sign Up"}
           </Button>
         </form>

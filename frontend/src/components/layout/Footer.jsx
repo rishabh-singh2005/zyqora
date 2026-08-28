@@ -86,7 +86,7 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-<footer className="mt-20 bg-gradient-to-r from-purple-300 via-white to-orange-300 backdrop-blur-sm">
+<footer className="mt-3 bg-gradient-to-r from-purple-300 via-white to-orange-300 backdrop-blur-sm">
       
       {/* ==================== MAIN FOOTER ==================== */}
       <div className="max-w-7xl mx-auto px-1 py-4 grid gap-[145px] sm:grid-cols-2 lg:grid-cols-5">
