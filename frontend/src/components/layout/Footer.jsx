@@ -86,53 +86,36 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="mt-20 bg-white/70 backdrop-blur-sm border-t border-primary-100">
+<footer className="mt-20 bg-gradient-to-r from-purple-300 via-white to-orange-300 backdrop-blur-sm">
       
       {/* ==================== MAIN FOOTER ==================== */}
-      <div className="max-w-7xl mx-auto px-6 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="max-w-7xl mx-auto px-1 py-4 grid gap-[145px] sm:grid-cols-2 lg:grid-cols-5">
 
         {/* BRAND SECTION */}
-        <div className="lg:col-span-2 space-y-4">
-          
-          {/* Logo */}
-          <Link to="/" className="inline-flex items-center gap-2">
-            <img
-              src={logo}
-              alt="Zyqora"
-              className="h-10 w-10 rounded-xl2 object-cover"
-            />
+<div className="lg:col-span-2 space-y-4">
 
-            <span className="font-display font-bold text-xl text-ink tracking-wide">
-              ZYQORA
-            </span>
-          </Link>
+  {/* Logo */}
+  <Link to="/" className="inline-flex items-center gap-2">
+    <div className="h-10 w-10 rounded-xl2 bg-black overflow-hidden">
+      <img
+        src={logo}
+        alt="Zyqora"
+        className="h-10 w-10 rounded-xl2 object-cover scale-[1.3]"
+      />
+    </div>
 
-          {/* Description */}
-          <p className="text-sm font-body text-muted max-w-sm leading-6">
-            Shop Beyond Ordinary — curated collections, trending must-haves,
-            and everyday essentials, delivered straight to your door.
-          </p>
+    <span className="font-display font-bold text-xl text-ink tracking-wide">
+      ZYQORA
+    </span>
+  </Link>
 
-          {/* Contact Information */}
-          <div className="space-y-2 pt-1 text-sm font-body text-muted">
-            
-            <p className="flex items-center gap-2">
-              <Mail size={15} className="text-primary-600 shrink-0" />
-              <span>support@zyqora.com</span>
-            </p>
+  {/* Description */}
+  <p className="text-sm font-body text-muted max-w-sm leading-6">
+    Shop Beyond Ordinary — curated collections, trending must-haves,
+    and everyday essentials, delivered straight to your door.
+  </p>
 
-            <p className="flex items-center gap-2">
-              <Phone size={15} className="text-primary-600 shrink-0" />
-              <span>+91 98765 43210</span>
-            </p>
-
-            <p className="flex items-center gap-2">
-              <MapPin size={15} className="text-primary-600 shrink-0" />
-              <span>New Delhi, India</span>
-            </p>
-
-          </div>
-        </div>
+</div>
 
         {/* LINK COLUMNS */}
         {Object.entries(FOOTER_LINKS).map(([heading, links]) => (
@@ -160,13 +143,37 @@ export default function Footer() {
       </div>
 
       {/* ==================== BOTTOM BAR ==================== */}
-      <div className="border-t border-primary-100">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="border-t border-purple-400">
+  <div className="max-w-7xl mx-auto px-1 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+         {/* Bottom Footer Section */}
+<div className="flex flex-col gap-4 pt-1 sm:flex-row sm:items-center sm:justify-between">
 
-          {/* Copyright */}
-          <p className="text-xs font-body text-muted text-center sm:text-left">
-            © {new Date().getFullYear()} Zyqora. All rights reserved.
-          </p>
+  {/* Copyright */}
+  <p className="text-xs font-body text-muted text-center sm:text-left">
+    © {new Date().getFullYear()} Zyqora. All rights reserved.
+  </p>
+
+  {/* Contact Information */}
+  <div className="flex flex-wrap items-center justify-center sm:justify-end pl-[210px] gap-x-6 gap-y-2 text-sm font-body text-muted">
+
+    <p className="flex items-center gap-2">
+      <Mail size={15} className="text-primary-600 shrink-0" />
+      <span>support@zyqora.com</span>
+    </p>
+
+    <p className="flex items-center gap-2">
+      <Phone size={15} className="text-primary-600 shrink-0" />
+      <span>+91 9876543210</span>
+    </p>
+
+    <p className="flex items-center gap-2">
+      <MapPin size={15} className="text-primary-600 shrink-0" />
+      <span>New Delhi, India</span>
+    </p>
+
+  </div>
+
+</div>
 
           {/* Social Icons */}
           <div className="flex items-center gap-3">
