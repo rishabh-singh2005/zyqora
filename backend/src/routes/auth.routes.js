@@ -18,7 +18,7 @@ import { generateRefreshToken } from "../services/token.service.js";
 import { prisma } from "../config/db.js";
 import { refreshCookieOptions } from "../utils/refreshCookie.js";
 import { v4 as uuidv4 } from "uuid";
-import { sendVerificationEmail, getClientUrl } from "../services/email.service.js";
+import { sendVerificationEmail } from "../services/email.service.js";
 
 const router = express.Router();
 
@@ -52,8 +52,17 @@ router.get(
 
 const completeOAuthLogin = async (req, res) => {
   const user = req.user;
-  const clientOrigin = req.headers.origin || req.headers.referer || "";
-  const clientUrl = getClientUrl(clientOrigin);
+
+  // IMPORTANT: Do NOT derive clientUrl from req.headers.origin/referer here.
+  // This route is hit via a redirect FROM accounts.google.com, so those
+  // headers point at Google's domain, not your frontend. Always use the
+  // fixed CLIENT_URL env var for OAuth redirects.
+  const clientUrl = process.env.CLIENT_URL;
+
+  if (!clientUrl) {
+    console.error("❌ [OAuth] CLIENT_URL is not set in environment variables.");
+    return res.status(500).send("Server misconfiguration: CLIENT_URL is not set.");
+  }
 
   // OAuth proves account ownership with the provider, but if unverified, send link
   if (!user.isEmailVerified) {
@@ -89,7 +98,10 @@ const completeOAuthLogin = async (req, res) => {
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { session: false, failureRedirect: "/login-failed" }),
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: `${process.env.CLIENT_URL}/login?error=oauth_failed`,
+  }),
   completeOAuthLogin
 );
 
@@ -101,7 +113,10 @@ router.get(
 
 router.get(
   "/facebook/callback",
-  passport.authenticate("facebook", { session: false, failureRedirect: "/login-failed" }),
+  passport.authenticate("facebook", {
+    session: false,
+    failureRedirect: `${process.env.CLIENT_URL}/login?error=oauth_failed`,
+  }),
   completeOAuthLogin
 );
 
