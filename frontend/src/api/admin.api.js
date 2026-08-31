@@ -2,14 +2,14 @@ import axiosInstance from "./axiosInstance";
 
 export const getDashboardStats = () => axiosInstance.get("/api/admin/dashboard/stats").then((res) => res.data);
 export const getUsers = (params = {}) => axiosInstance.get("/api/admin/users", { params }).then((res) => res.data);
-// export const addUser = ()
+
 export const updateUserRole = (id, role) =>
   axiosInstance.patch(`/api/admin/users/${id}/role`, { role }).then((res) => res.data);
 export const updateUserStatus = (id, isBanned) =>
   axiosInstance.patch(`/api/admin/users/${id}/status`, { isBanned }).then((res) => res.data);
 
-export const deleteUser = (id) =>
-  axiosInstance.delete(`/api/admin/users/${id}`).then((res) => res.data);
+export const createUser = (data) => axiosInstance.post("/api/admin/users", data).then((res) => res.data);
+export const deleteUser = (id) => axiosInstance.delete(`/api/admin/users/${id}`).then((res) => res.data);
 
 export const createCategory = (data) =>
   axiosInstance.post("/api/categories", data).then((res) => res.data);
