@@ -86,41 +86,44 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-<footer className="mt-3 bg-gradient-to-r from-purple-300 via-white to-orange-300 backdrop-blur-sm">
-      
+    <footer className="mt-3 bg-gradient-to-r from-purple-300 via-white to-orange-300 backdrop-blur-sm">
       {/* ==================== MAIN FOOTER ==================== */}
-      <div className="max-w-7xl mx-auto px-1 py-4 grid gap-[145px] sm:grid-cols-2 lg:grid-cols-5">
-
+      <div
+        className="
+          max-w-7xl mx-auto
+          px-4 sm:px-6 lg:px-8
+          py-8 sm:py-10
+          grid gap-y-10 gap-x-8
+          grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5
+        "
+      >
         {/* BRAND SECTION */}
-<div className="lg:col-span-2 space-y-4">
+        <div className="col-span-2 sm:col-span-2 md:col-span-4 lg:col-span-2 space-y-4">
+          {/* Logo */}
+          <Link to="/" className="inline-flex items-center gap-2">
+            <div className="h-10 w-10 rounded-xl2 bg-black overflow-hidden shrink-0">
+              <img
+                src={logo}
+                alt="Zyqora"
+                className="h-10 w-10 rounded-xl2 object-cover scale-[1.3]"
+              />
+            </div>
 
-  {/* Logo */}
-  <Link to="/" className="inline-flex items-center gap-2">
-    <div className="h-10 w-10 rounded-xl2 bg-black overflow-hidden">
-      <img
-        src={logo}
-        alt="Zyqora"
-        className="h-10 w-10 rounded-xl2 object-cover scale-[1.3]"
-      />
-    </div>
+            <span className="font-display font-bold text-xl text-ink tracking-wide">
+              ZYQORA
+            </span>
+          </Link>
 
-    <span className="font-display font-bold text-xl text-ink tracking-wide">
-      ZYQORA
-    </span>
-  </Link>
-
-  {/* Description */}
-  <p className="text-sm font-body text-muted max-w-sm leading-6">
-    Shop Beyond Ordinary — curated collections, trending must-haves,
-    and everyday essentials, delivered straight to your door.
-  </p>
-
-</div>
+          {/* Description */}
+          <p className="text-sm font-body text-muted max-w-sm leading-6">
+            Shop Beyond Ordinary — curated collections, trending must-haves,
+            and everyday essentials, delivered straight to your door.
+          </p>
+        </div>
 
         {/* LINK COLUMNS */}
         {Object.entries(FOOTER_LINKS).map(([heading, links]) => (
-          <div key={heading} className="space-y-4">
-
+          <div key={heading} className="col-span-1 space-y-4">
             <h3 className="font-display font-semibold text-sm text-ink uppercase tracking-wide">
               {heading}
             </h3>
@@ -137,47 +140,64 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-
           </div>
         ))}
       </div>
 
       {/* ==================== BOTTOM BAR ==================== */}
       <div className="border-t border-purple-400">
-  <div className="max-w-7xl mx-auto px-1 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
-         {/* Bottom Footer Section */}
-<div className="flex flex-col gap-4 pt-1 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          className="
+            max-w-7xl mx-auto
+            px-4 sm:px-6 lg:px-8
+            py-4
+            flex flex-col gap-4
+            lg:flex-row lg:items-center lg:justify-between
+          "
+        >
+          {/* Copyright + Contact Information */}
+          <div
+            className="
+              flex flex-col gap-3
+              sm:flex-row sm:flex-wrap sm:items-center
+              sm:gap-x-6 sm:gap-y-2
+              text-center sm:text-left
+            "
+          >
+            <p className="text-xs font-body text-muted">
+              © {new Date().getFullYear()} Zyqora. All rights reserved.
+            </p>
 
-  {/* Copyright */}
-  <p className="text-xs font-body text-muted text-center sm:text-left">
-    © {new Date().getFullYear()} Zyqora. All rights reserved.
-  </p>
+            <div
+              className="
+                flex flex-col gap-2
+                sm:flex-row sm:flex-wrap sm:items-center
+                justify-center sm:justify-start
+                gap-x-6 gap-y-2
+                text-sm font-body text-muted
+              "
+            >
+              <p className="flex items-center justify-center sm:justify-start gap-2">
+                <Mail size={15} className="text-primary-600 shrink-0" />
+                <span className="break-all">support@zyqora.com</span>
+              </p>
 
-  {/* Contact Information */}
-  <div className="flex flex-wrap items-center justify-center sm:justify-end pl-[210px] gap-x-6 gap-y-2 text-sm font-body text-muted">
+              <p className="flex items-center justify-center sm:justify-start gap-2">
+                <Phone size={15} className="text-primary-600 shrink-0" />
+                <span>+91 9876543210</span>
+              </p>
 
-    <p className="flex items-center gap-2">
-      <Mail size={15} className="text-primary-600 shrink-0" />
-      <span>support@zyqora.com</span>
-    </p>
-
-    <p className="flex items-center gap-2">
-      <Phone size={15} className="text-primary-600 shrink-0" />
-      <span>+91 9876543210</span>
-    </p>
-
-    <p className="flex items-center gap-2">
-      <MapPin size={15} className="text-primary-600 shrink-0" />
-      <span>New Delhi, India</span>
-    </p>
-
-  </div>
-
-</div>
+              <p className="flex items-center justify-center sm:justify-start gap-2">
+                <MapPin size={15} className="text-primary-600 shrink-0" />
+                <span>New Delhi, India</span>
+              </p>
+            </div>
+          </div>
 
           {/* Social Icons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center lg:justify-end gap-3">
             {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+
               <a
                 key={label}
                 href={href}
@@ -189,7 +209,6 @@ export default function Footer() {
               </a>
             ))}
           </div>
-
         </div>
       </div>
     </footer>

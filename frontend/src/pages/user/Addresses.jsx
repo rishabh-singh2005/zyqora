@@ -12,6 +12,7 @@ import {
 import AddressAutocomplete from "../../components/common/AddressAutocomplete";
 import AddressMap from "../../components/common/AddressMap";
 import { reverseGeocode } from "../../api/geocode.api";
+import {LocateFixed } from "lucide-react";
 
 const EMPTY_FORM = {
   fullName: "",
@@ -32,6 +33,8 @@ export default function Addresses() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [detecting, setDetecting] = useState(false);
+const [locationError, setLocationError] = useState("");
 
   const handleAddressSelect = (result) => {
   setForm({
@@ -58,6 +61,33 @@ const handleMapClick = async (lat, lon) => {
   } catch (err) {
     console.error("Reverse geocode failed:", err);
   }
+};
+
+const handleUseCurrentLocation = () => {
+  if (!navigator.geolocation) {
+    setLocationError("Geolocation is not supported by your browser");
+    return;
+  }
+
+  setDetecting(true);
+  setLocationError("");
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const { latitude, longitude } = position.coords;
+      await handleMapClick(latitude, longitude);
+      setDetecting(false);
+    },
+    (error) => {
+      setDetecting(false);
+      if (error.code === error.PERMISSION_DENIED) {
+        setLocationError("Location access denied. Please enable it in your browser settings.");
+      } else {
+        setLocationError("Unable to detect your location. Please try again or enter manually.");
+      }
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
 };
 
 
@@ -161,14 +191,33 @@ const handleMapClick = async (lat, lon) => {
             <form onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-4">
             {/* ==================== ADDRESS AUTOCOMPLETE + MAP ==================== */}
             <div className="sm:col-span-2 space-y-3">
-            <AddressAutocomplete onSelect={handleAddressSelect} />
-            <AddressMap
-              lat={selectedLocation?.lat}
-              lon={selectedLocation?.lon}
-              label={form.line1}
-              onMapClick={handleMapClick}
-            />
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <AddressAutocomplete onSelect={handleAddressSelect} />
+            </div>
+            <button
+              type="button"
+              onClick={handleUseCurrentLocation}
+              disabled={detecting}
+              title="Use my current location"
+              className="flex items-center gap-1.5 shrink-0 border border-primary-200 text-primary-600 rounded-lg px-3 py-2.5 text-sm font-body hover:bg-primary-50 transition disabled:opacity-50"
+            >
+              <LocateFixed size={16} className={detecting ? "animate-pulse" : ""} />
+              <span className="hidden sm:inline">{detecting ? "Detecting..." : "Use Current Location"}</span>
+            </button>
           </div>
+
+          {locationError && (
+            <p className="text-xs font-body text-secondary-600">{locationError}</p>
+          )}
+
+          <AddressMap
+            lat={selectedLocation?.lat}
+            lon={selectedLocation?.lon}
+            label={form.line1}
+            onMapClick={handleMapClick}
+          />
+        </div>
 
             <input
               name="fullName"

@@ -33,12 +33,14 @@ import About from "./pages/user/About";
 import Contact from "./pages/user/Contact";
 import Terms from "./pages/user/Terms";
 import VerifyEmail from "./pages/user/VerifyEmail";
+import AuthFooter from "./components/layout/AuthFooter";
 
 function AppContent() {
   const dispatch = useDispatch();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/signup";
 
   // ==================== RESTORE SESSION ON APP LOAD ====================
   useEffect(() => {
@@ -118,7 +120,7 @@ function AppContent() {
         </Routes>
       </main>
 
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && (isAuthPage ? <AuthFooter /> : <Footer />)}
     </div>
   );
 }
