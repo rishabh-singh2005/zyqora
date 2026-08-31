@@ -1,4 +1,4 @@
-import { listUsers, updateUserRole, toggleUserBan, getDashboardStats, deleteUserService } from "../services/admin.service.js";
+import { listUsers, updateUserRole, toggleUserBan, getDashboardStats, createUserByAdmin, deleteUserByAdmin  } from "../services/admin.service.js";
 
 // ==================== LIST USERS ====================
 export const getUsers = async (req, res) => {
@@ -20,14 +20,23 @@ export const changeUserRole = async (req, res) => {
   }
 };
 
-//=============Delete User===========================
-export const deleteUser = async (req, res) => {
-  try{
-  const response = await deleteUserService(req.params.id);
-  res.status(200).json({success : true, response});
+// ==================== CREATE USER ====================
+export const addUserByAdmin = async (req, res) => {
+  try {
+    const user = await createUserByAdmin(req.body);
+    res.status(201).json({ success: true, user });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
-  catch(error){
-    res.status(error.statusCode || 500).json ({success: false, message: error.message});
+};
+
+// ==================== DELETE USER ====================
+export const removeUserByAdmin = async (req, res) => {
+  try {
+    await deleteUserByAdmin(req.params.id);
+    res.status(200).json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

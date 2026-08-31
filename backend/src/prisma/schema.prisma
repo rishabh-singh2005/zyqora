@@ -82,7 +82,7 @@ model User {
 model RefreshToken {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tokenHash String
   userAgent String?
   ip        String?
@@ -96,7 +96,7 @@ model RefreshToken {
 model Address {
   id         String   @id @default(uuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName   String
   phone      String
   line1      String
@@ -134,7 +134,7 @@ model Product {
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
   createdById String?
-  createdBy   User?    @relation(fields: [createdById], references: [id])
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -173,7 +173,7 @@ model ProductVariant {
 model Cart {
   id        String     @id @default(uuid())
   userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id])
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
   updatedAt DateTime   @updatedAt
 }
@@ -192,7 +192,7 @@ model CartItem {
 model Wishlist {
   id        String  @id @default(uuid())
   userId    String
-  user      User    @relation(fields: [userId], references: [id])
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   productId String
   product   Product @relation(fields: [productId], references: [id])
 
@@ -212,7 +212,7 @@ model Coupon {
 model Order {
   id              String      @id @default(uuid())
   userId          String
-  user            User        @relation(fields: [userId], references: [id])
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   addressId       String
   address         Address     @relation(fields: [addressId], references: [id])
   status          OrderStatus @default(PENDING)
@@ -243,7 +243,7 @@ model OrderItem {
 model Payment {
   id                String         @id @default(uuid())
   userId            String
-  user              User           @relation(fields: [userId], references: [id])
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   purpose           PaymentPurpose
   orderId           String?
   order             Order?         @relation(fields: [orderId], references: [id])
@@ -259,7 +259,7 @@ model Payment {
 model UserPlan {
   id        String       @id @default(uuid())
   userId    String
-  user      User         @relation(fields: [userId], references: [id])
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   planType  PlanType
   duration  PlanDuration
   startedAt DateTime     @default(now())
@@ -272,7 +272,7 @@ model UserPlan {
 model Review {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   productId String
   product   Product  @relation(fields: [productId], references: [id])
   rating    Int
@@ -285,7 +285,7 @@ model Review {
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   message   String
   isRead    Boolean  @default(false)

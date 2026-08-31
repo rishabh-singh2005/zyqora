@@ -1,5 +1,6 @@
 import { prisma } from "../config/db.js";
 import { createNotification } from "./notification.service.js";
+import bcrypt from "bcryptjs";
 
 // ==================== LIST USERS (search, filter, sort, pagination) ====================
 export const listUsers = async (query) => {
@@ -80,50 +81,48 @@ export const updateUserRole = async (targetUserId, newRole) => {
   });
 };
 
-//=================Delete User ================================
-  export const deleteUserService = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
+// ==================== CREATE USER (Super Admin only) ====================
+export const createUserByAdmin = async ({ name, email, password, role }) => {
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser) {
+    const error = new Error("A user with this email already exists");
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      role: role || "USER",
+      isEmailVerified: true, // admin-created accounts are pre-verified, no need to email
     },
+    select: { id: true, name: true, email: true, role: true, isEmailVerified: true, createdAt: true },
   });
 
+  return user;
+};
+
+// ==================== DELETE USER (Super Admin only) ====================
+export const deleteUserByAdmin = async (targetUserId) => {
+  const user = await prisma.user.findUnique({ where: { id: targetUserId } });
+
   if (!user) {
-    const error = new Error("User not found with this id");
-    error.status = 404;
+    const error = new Error("User not found");
+    error.statusCode = 404;
     throw error;
   }
 
   if (user.role === "SUPER_ADMIN") {
-    const error = new Error("You cannot delete Super Admin");
-    error.status = 403;
+    const error = new Error("Cannot delete a Super Admin account");
+    error.statusCode = 403;
     throw error;
   }
 
-  // Delete user's refresh tokens first
-  await prisma.refreshToken.deleteMany({
-    where: {
-      userId: userId,
-    },
-  });
-
-  // 2. Delete addresses
-  await prisma.address.deleteMany({
-    where: {
-      userId,
-    },
-  });
-
-  // Then delete the user
-  await prisma.user.delete({
-    where: {
-      id: userId,
-    },
-  });
-
-  return {
-    message: "User deleted successfully",
-  };
+  await prisma.user.delete({ where: { id: targetUserId } });
 };
 // ==================== BAN / UNBAN USER ====================
 export const toggleUserBan = async (targetUserId, isBanned) => {

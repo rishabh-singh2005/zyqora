@@ -6,10 +6,12 @@ import {
   dashboard,
   getAllOrdersAdmin,
   changeOrderStatus,
-  deleteUser
+  addUserByAdmin, 
+  removeUserByAdmin 
 } from "../controllers/admin.controller.js";
 import { authenticate } from "../middlewares/authenticate.js";
 import { authorize } from "../middlewares/authorize.js";
+
 
 const router = express.Router();
 
@@ -20,6 +22,7 @@ router.patch("/users/:id/status", authenticate, authorize("ADMIN", "SUPER_ADMIN"
 router.get("/dashboard/stats", authenticate, authorize("ADMIN", "SUPER_ADMIN"), dashboard);
 router.get("/orders", authenticate, authorize("ADMIN", "SUPER_ADMIN"), getAllOrdersAdmin);
 router.patch("/orders/:id/status", authenticate, authorize("ADMIN", "SUPER_ADMIN"), changeOrderStatus);
-router.delete("/users/:id", authenticate, authorize("SUPER_ADMIN"), deleteUser );
+router.post("/users", authenticate, authorize("SUPER_ADMIN"), addUserByAdmin);
+router.delete("/users/:id", authenticate, authorize("SUPER_ADMIN"), removeUserByAdmin);
 
 export default router;
