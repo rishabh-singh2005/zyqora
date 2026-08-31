@@ -1,4 +1,4 @@
-import { listUsers, updateUserRole, toggleUserBan, getDashboardStats } from "../services/admin.service.js";
+import { listUsers, updateUserRole, toggleUserBan, getDashboardStats, deleteUserService } from "../services/admin.service.js";
 
 // ==================== LIST USERS ====================
 export const getUsers = async (req, res) => {
@@ -17,6 +17,17 @@ export const changeUserRole = async (req, res) => {
     res.status(200).json({ success: true, user });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+//=============Delete User===========================
+export const deleteUser = async (req, res) => {
+  try{
+  const response = await deleteUserService(req.params.id);
+  res.status(200).json({success : true, response});
+  }
+  catch(error){
+    res.status(error.statusCode || 500).json ({success: false, message: error.message});
   }
 };
 

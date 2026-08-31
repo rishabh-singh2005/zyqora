@@ -66,6 +66,7 @@ export const updateUserRole = async (targetUserId, newRole) => {
     throw error;
   }
 
+
   await createNotification(
   targetUserId,
   "Role Updated",
@@ -79,6 +80,51 @@ export const updateUserRole = async (targetUserId, newRole) => {
   });
 };
 
+//=================Delete User ================================
+  export const deleteUserService = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    const error = new Error("User not found with this id");
+    error.status = 404;
+    throw error;
+  }
+
+  if (user.role === "SUPER_ADMIN") {
+    const error = new Error("You cannot delete Super Admin");
+    error.status = 403;
+    throw error;
+  }
+
+  // Delete user's refresh tokens first
+  await prisma.refreshToken.deleteMany({
+    where: {
+      userId: userId,
+    },
+  });
+
+  // 2. Delete addresses
+  await prisma.address.deleteMany({
+    where: {
+      userId,
+    },
+  });
+
+  // Then delete the user
+  await prisma.user.delete({
+    where: {
+      id: userId,
+    },
+  });
+
+  return {
+    message: "User deleted successfully",
+  };
+};
 // ==================== BAN / UNBAN USER ====================
 export const toggleUserBan = async (targetUserId, isBanned) => {
   const user = await prisma.user.findUnique({ where: { id: targetUserId } });

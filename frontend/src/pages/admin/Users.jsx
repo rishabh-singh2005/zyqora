@@ -11,6 +11,7 @@ export default function AdminUsers() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
+  
 
   const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
 
@@ -48,6 +49,28 @@ export default function AdminUsers() {
       alert(err.response?.data?.message || "Failed to update status");
     }
   };
+
+  //=============Delete User =======================
+  const handleDeleteUser = async (id) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this user?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await deleteUser(id);
+
+    // UI se user immediately remove
+    setUsers((prevUsers) =>
+      prevUsers.filter((user) => user.id !== id)
+    );
+
+    alert("User deleted successfully");
+  } catch (err) {
+    alert(err.response?.data?.message || "Failed to delete user");
+  }
+};
 
   if (loading) return <p className="text-muted font-body">Loading users...</p>;
 
@@ -127,6 +150,31 @@ export default function AdminUsers() {
                     </button>
                   )}
                 </td>
+
+                {/*
+<td className="p-4">
+  {u.role !== "SUPER_ADMIN" && (
+    <div className="flex items-center gap-4">
+      <button
+        onClick={() => handleBanToggle(u.id, u.isBanned)}
+        className={`flex items-center gap-1 text-xs font-body ${
+          u.isBanned ? "text-green-600" : "text-secondary-600"
+        } hover:underline`}
+      >
+        {u.isBanned ? <ShieldCheck size={14} /> : <Ban size={14} />}
+        {u.isBanned ? "Unban" : "Ban"}
+      </button>
+
+      <button
+        onClick={() => handleDeleteUser(u.id)}
+        className="text-xs font-body text-red-600 hover:underline"
+      >
+        Delete
+      </button>
+    </div>
+  )}
+</td>
+*/}
               </tr>
             ))}
           </tbody>

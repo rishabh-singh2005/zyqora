@@ -6,6 +6,7 @@ import {
   dashboard,
   getAllOrdersAdmin,
   changeOrderStatus,
+  deleteUser
 } from "../controllers/admin.controller.js";
 import { authenticate } from "../middlewares/authenticate.js";
 import { authorize } from "../middlewares/authorize.js";
@@ -19,5 +20,6 @@ router.patch("/users/:id/status", authenticate, authorize("ADMIN", "SUPER_ADMIN"
 router.get("/dashboard/stats", authenticate, authorize("ADMIN", "SUPER_ADMIN"), dashboard);
 router.get("/orders", authenticate, authorize("ADMIN", "SUPER_ADMIN"), getAllOrdersAdmin);
 router.patch("/orders/:id/status", authenticate, authorize("ADMIN", "SUPER_ADMIN"), changeOrderStatus);
+router.delete("/users/:id", authenticate, authorize("SUPER_ADMIN"), deleteUser );
 
 export default router;

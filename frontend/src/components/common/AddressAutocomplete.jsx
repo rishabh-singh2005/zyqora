@@ -46,7 +46,7 @@ export default function AddressAutocomplete({ onSelect }) {
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-20 mt-1 w-full bg-white rounded-lg shadow-card-hover border border-primary-100 max-h-56 overflow-y-auto">
+        <div className="absolute z-[9999] mt-1 w-full bg-white rounded-lg shadow-card-hover border border-primary-100 max-h-56 overflow-y-auto">
           {suggestions.map((result, index) => (
             <button
               key={index}
