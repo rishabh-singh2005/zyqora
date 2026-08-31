@@ -173,8 +173,9 @@ export default function Footer() {
                 flex flex-col gap-2
                 sm:flex-row sm:flex-wrap sm:items-center
                 justify-center sm:justify-start
-                gap-x-6 gap-y-2
+                gap-x-20 gap-y-2
                 text-sm font-body text-muted
+                translate-x-40
               "
             >
               <p className="flex items-center justify-center sm:justify-start gap-2">
